@@ -212,18 +212,16 @@ Die Implementierung des Fahrervergleichs wird als separater Arbeitsschritt nach 
 
 ## Zeitplan und Meilensteine
 
-| Phase | Meilenstein | Datum / Zeitraum | Bezug Semesterplan |
-|-------|-------------|------------------|-------------------|
-| 1. Setup und Exploration | Repo eingerichtet, FastF1-Daten geladen, erste EDA | 10.03. bis 17.03.2026 | Data and variable types, Designing text elements |
-| 2. Projektcharta | Entwurf Charta, Personas definiert, Data Story formuliert | 10.03. bis 20.03.2026 | Abgabe Projektcharta |
-| 3. Coaching 1 | Feedback auf Konzept und erste Visualisierungen | 24.03.2026 | Feedback/Coaching on concept |
-| 4. Kernvisualisierungen | Track Map, Lap Time Chart, Stint Chart implementiert | 20.03. bis 07.04.2026 | Visual Variables, Directory of Vis., Geo Data |
-| 5. Erweiterte Visualisierungen | Sektor-Analyse, Gap-Analyse, Dashboard-Layout | 07.04. bis 21.04.2026 | Gestalt Laws, Interactive Elements |
-| 6. Moodle-Test | Test zu Visualisierungskonzepten | 21.04.2026 | Moodle-Test |
-| 7. Coaching 2 und 3 | Iteratives Feedback auf Dashboard | 21.04. bis 05.05.2026 | On-site und Online Coaching |
-| 8. Finalisierung | Dashboard deployen, Dokumentation abschliessen | 05.05. bis 12.05.2026 | Individuelle Projektarbeit |
-| 9. Präsentation | Folien erstellen, Vortrag üben | 19.05.2026 | Presentation Training |
-| 10. Prüfung | Mündliche Gruppenpräsentation (10 Min. + 5 Min. Q&A) | Prüfungsperiode | Reguläre Prüfungsperiode |
+| Phase | Meilenstein | Datum / Zeitraum |
+|-------|-------------|------------------|
+| 1. Setup und Exploration | Repo eingerichtet, FastF1-Daten geladen, erste EDA | 10.03. bis 17.03.2026 |
+| 2. Projektcharta | Entwurf Charta, Personas definiert, Data Story formuliert | 10.03. bis 20.03.2026 |
+| 3. Coaching 1 | Feedback auf Konzept und erste Visualisierungen | 24.03.2026 |
+| 4. Kernvisualisierungen | Stint Chart, Lap Time Degradation, Driver Inputs, Track Map | 20.03. bis 07.04.2026 |
+| 5. Erweiterte Visualisierungen | Sektor-Heatmap, optionaler Fahrervergleich, Dashboard-Layout | 07.04. bis 21.04.2026 |
+| 6. Coaching 2 und 3 | Iteratives Feedback auf Dashboard | 21.04. bis 05.05.2026 |
+| 7. Finalisierung | Dashboard deployen, Dokumentation abschliessen | 05.05. bis 12.05.2026 |
+| 8. Präsentation | Folien erstellen, Vortrag üben, mündliche Gruppenpräsentation (10 Min. + 5 Min. Q&A) | 19.05.2026 / Prüfungsperiode |
 
 ## Projekt-Organisation (Repo-Struktur)
 
