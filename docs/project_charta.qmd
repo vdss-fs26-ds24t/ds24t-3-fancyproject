@@ -1,80 +1,266 @@
-# Project Charta
-## Context and Scope
-Describe the context (domain/business area) and topic of the visualization project. Which topical aspects should be addressed? Which question(s) should the data visualization project answer? What are the expected benefits of the project? Where should the visualization product be published (e.g. website, app, intranet)?
+---
+title: "Projektcharta"
+subtitle: "Leclerc@Monza 2024: Interactive Race Analytics Dashboard"
+---
 
-## Project Objectives and Success Criteria
-Describe the objectives **from the client/stakeholder perspective**. For example: "Enable users to understand the distribution of sales across different regions". Try to be as specific as possible, but restrict to the concrete needs formulated by the client/stakeholders. For example: if a dashboard is needed explicitly, then state it here, otherwise leave the form of the visualization product open.
+## Teammitglieder
 
-Formulate success criteria (from the client/stakeholder perspective): qualitative objectives and, wherever possible, corresponding quantitative metrics with target values to be achieved within the project. These objectives should directly address the pains and gains identified in the user analysis.
+| Name | Rolle | Verantwortlichkeiten |
+|------|-------|----------------------|
+| Claudio Calamia | Data Engineering & Backend | FastF1-Datenextraktion, Datenaufbereitung, API-Pipeline |
+| Stefan Hohl | Visualisierung & Dashboard | Streamlit-App, Plot-Design, Interaktivität |
+| Fynn Fischer | Analyse & Dokumentation | Datenanalyse, Quarto-Dokumentation, GitHub Pages |
 
-It is also helpful to specify what is explicitly excluded from the project objectives (out of scope).
+Die Rollenverteilung ist flexibel. Alle Teammitglieder arbeiten an allen Aspekten mit. Die Zuordnung beschreibt den primären Verantwortungsbereich.
 
-## Stakeholder Analysis
-List the people involved in and affected by the project. Describe their goals and relationships with each other. Visualisation in the form of a stakeholder map can provide a quick overview.
+## Projektbeschreibung
 
-## User Analysis
-Analyse the target audience of the visualization product and create at least 2 personas with **relevant attributes** such as domain expertise, data literacy, technical environment (devices, screen sizes), frequency of use etc. Amend each persona with the dimensions of the customer profile side in the Value Proposition Canvas @Osterwalder2014:
+### Motivation und Kontext
 
-* **User tasks** (jobs): What tasks are users trying to accomplish? Consider functional jobs (e.g. analysing data, making decisions), social jobs (e.g. reporting to stakeholders, collaborating with colleagues) and emotional jobs (e.g. feeling confident in their decisions).
-* **Pains**: What obstacles, risks or undesired outcomes do users currently face? What makes their current approach frustrating or inefficient?
-* **Gains**: What outcomes and benefits do users expect or desire? What would exceed their expectations?
+Der Grosse Preis von Italien 2024 in Monza war eines der taktisch spannendsten Rennen der Saison: Charles Leclerc gewann mit einer riskanten 1-Stopp-Strategie, während die meisten Konkurrenten (inklusive McLaren und Red Bull) auf zwei Stopps setzten. Diese strategische Entscheidung und ihre Auswirkung auf Reifenabbau, Rundenzeiten und Positionskämpfe bieten eine ideale Grundlage für eine datengetriebene Rennanalyse.
 
+### Zentrale Fragestellung (Data Story)
 
-## Situation Assessment
-Describe the available resources (data, personnel, material, software/tools, infrastructure, etc.) and time as well as restrictions and constraints. Possible risks that may arise during the project are also identified.
+**"Wie hat Ferraris 1-Stopp-Strategie in Monza 2024 zum Sieg geführt und wo auf der Strecke wurde der Vorteil gewonnen bzw. verteidigt?"**
 
+### Erzählstruktur des Dashboards
 
-## Visualization Concept
-Translate the project objectives into a concrete visualization concept. This corresponds to the value map side of the Value Proposition Canvas [@Osterwalder2014] – describe how the proposed visualization product addresses the users' tasks, relieves their pains and creates gains. Address the following aspects:
+Das Dashboard führt den Nutzer in vier aufeinander aufbauenden Schritten durch Leclercs Rennen:
 
-* **Product form**: Composition of the visualization product – dashboard, data story, infographic, exploratory tool, etc.
-* **Visual encodings**: Types of charts and visualizations to be used – e.g. bar chart, line chart, scatter plot, map, etc.
-* **Interactivity**: Static vs. dynamic/interactive elements – filtering, drill-down, tooltips, linked views, etc.
-* **Narrative and annotation**: Text elements, storytelling structure, annotations and contextual information.
-* **Target medium and integration**: Embedding in the target environment – e.g. website, intranet, app, print, etc.
+**Schritt 1: Das grosse Bild (Einstieg)**
+Der Nutzer sieht zuerst die Strategie-Übersicht (Stint Chart) aller Fahrer. Hier wird sofort sichtbar, dass Leclerc als einer von wenigen eine 1-Stopp-Strategie gefahren ist. Die Frage entsteht: Warum hat das funktioniert?
 
-For each design decision, articulate the intended value along three dimensions:
+**Schritt 2: Die Reifen-Story (Degradation)**
+Das Lap-Time-Diagramm zeigt, wie sich Leclercs Rundenzeiten über die beiden Stints entwickelt haben. Die Degradationskurve auf dem Hard-Compound ist das Herzstück der Geschichte: Hat er die Reifen gleichmässig abgebaut oder gab es einen kritischen Punkt?
 
-* **Cognitive and analytical value**: How does the design amplify the user's ability to detect patterns, identify outliers, understand distributions or discover relationships [@card1999; @vanwijk2005]?
-* **Communicative value**: How does the design support the communication of information to the target audience profile(s)? 
-* **Experiential and aesthetic value**: How do the visual and interactive qualities of the design foster engagement, trust and willingness to adopt the product in practice?
+**Schritt 3: Das Fahrverhalten (Technik)**
+Die Driver-Inputs-Analyse zeigt, wie Leclerc sein Fahren aktiv angepasst hat, um die Reifen über 31 Runden zu bringen. Der Vergleich zwischen einer frühen und einer späten Runde auf dem Hard macht sichtbar, wo er sanfter gebremst, später Gas gegeben oder die Gangwahl verändert hat. Hier wird die Ingenieursleistung hinter dem Ergebnis greifbar.
 
-Justify the concept by mapping it explicitly to the project objectives and the user needs identified in the user analysis.
+**Schritt 4: Die Strecke im Detail (Räumliche Analyse)**
+Track Map und Sektor-Heatmap zeigen räumlich, wo auf der Strecke die Veränderungen stattgefunden haben und in welchen Sektoren der Reifenabbau am stärksten war. Optional kann hier ein zweiter Fahrer zum Vergleich eingeblendet werden.
 
+## Datenquelle
 
-## Project Plan
-Divide the project into individual phases, describe them briefly and draw up a preliminary timetable, e.g. as a Gantt chart:
+### FastF1 Python API
 
-```{mermaid}
-%%| label: fig-project-plan
-%%| fig-cap: Preliminary project plan in the form of a Gantt chart.
-gantt
-    title Project Plan
-    dateFormat YYYY-MM-DD
-    tickInterval 5day
-    section Project Understanding
-        Initiation workshop and context analysis     :a1, 2024-07-01, 1d
-        Stakeholder and user analysis     :a3, 2024-07-02, 5d
-        Situation assessment    :a4, 2024-07-06, 1d
-        Project objectives and visualization concept    :a5, 2024-07-07, 1d
-        Sign project charta: milestone, m1, 2024-07-08, 1d
-    
-    section Data Acquisition and Exploration
-        Acquire data :a6, 2024-07-08, 3d
-        Exploratory data analysis   :a7, 2024-07-09, 2d
-        Discuss data report: milestone, m2, 2024-07-11, 1d
-        
-    section Visual Encoding and Design
-        Overview charts   :a8, 2024-07-11, 3d
-        Maps :a9, 2024-07-11, 5d
-        Implement Dashboard prototype :a10, 2024-07-16, 5d
-        Complete visualization report :a10, 2024-07-21, 1d
-    section Evaluation
-        Prepare presentation :a10, 2024-07-22, 2d
-        Project presentation : milestone, m2, 2024-07-24, 4m
-```
+Die Daten werden über die [FastF1](https://docs.fastf1.dev/) Python-Bibliothek bezogen, die offiziell bereitgestellte F1-Timing- und Telemetriedaten strukturiert aufbereitet.
 
-See [Mermaid syntax for Gantt charts](https://mermaid.js.org/syntax/gantt.html). It might not be displayed correctly in Safari &#8594; use Chrome. [Live editor with export functionality](https://mermaid.live/)
+### Datensatz-Übersicht
 
-## Roles and Contact Details
-List the people involved in the development work here with their role titles, tasks and contact details.
+Der Datensatz setzt sich aus mehreren zusammenhängenden Tabellen zusammen, die über Session- und Fahrer-IDs verknüpft werden:
+
+| Datenebene | Geschätzte Beobachtungen | Beschreibung |
+|------------|--------------------------|--------------|
+| Lap Data | ca. 1'000+ (ca. 20 Fahrer x 53 Runden) | Rundenzeiten, Sektorzeiten, Reifentyp, Pit Stops |
+| Telemetry Data | ca. 100'000+ (hochfrequente Abtastung) | Speed, Throttle, Brake, Gear, RPM, DRS, GPS-Position |
+| Session Results | ca. 20 (pro Session) | Endpositionen, Teamzuordnung, Status |
+
+### Merkmale (Features)
+
+| Merkmal | Datentyp (Python) | Variablentyp | Skalenniveau |
+|---------|--------------------|--------------|--------------|
+| Driver | string | Kategoriell | Nominal |
+| Team | string | Kategoriell | Nominal |
+| Compound (Reifentyp) | string | Kategoriell | Nominal |
+| LapNumber | integer | Numerisch (diskret) | Ratio |
+| LapTime | timedelta/float | Numerisch (kontinuierlich) | Ratio |
+| Sector1/2/3Time | timedelta/float | Numerisch (kontinuierlich) | Ratio |
+| TyreLife | integer | Numerisch (diskret) | Ratio |
+| Speed | float | Numerisch (kontinuierlich) | Ratio |
+| Throttle | float (0 bis 100%) | Numerisch (kontinuierlich) | Ratio |
+| Brake | boolean/float | Kategoriell / Numerisch | Nominal / Ratio |
+| Gear | integer (1 bis 8) | Numerisch (diskret) | Ordinal |
+| DRS | integer (0/1) | Kategoriell | Nominal |
+| Position | integer | Numerisch (diskret) | Ordinal |
+| X, Y (GPS) | float | Numerisch (kontinuierlich) | Intervall |
+| PitInTime, PitOutTime | timedelta | Numerisch (kontinuierlich) | Ratio |
+
+**Anforderungserfüllung gemäss Kursvorlage:**
+
+- Mindestens 100 Beobachtungen: über 1'000 auf Lap-Ebene, über 100'000 auf Telemetrie-Ebene
+- Mindestens 6 Merkmale: 15+ Merkmale identifiziert
+- Kombination numerisch und kategoriell: Mix vorhanden (z.B. Speed vs. Compound)
+- Keine im Kurs anderweitig verwendeten oder davon abgeleiteten Daten
+
+## Zielgruppen (Personas)
+
+### Persona 1: Marco, 34, Race Strategy Engineer (Primäre Zielgruppe)
+
+**Hintergrund:** Marco arbeitet als Strategieingenieur bei einem Formel-1-Mittelfeld-Team. Nach jedem Rennwochenende erstellt er einen Post-Race-Report, in dem er die Performance des eigenen Fahrers mit der Konkurrenz vergleicht. Besonders interessiert ihn, wie andere Teams strategische Vorteile erzielen konnten.
+
+**Technische Kompetenz:** Sehr hoch. Arbeitet täglich mit Timing-Daten, Telemetrie-Software und internen Analyse-Tools. Erwartet Präzision und die Möglichkeit, Daten selbst zu filtern und zu vergleichen.
+
+**Nutzungsszenario:** Am Montagmorgen nach dem Monza-GP öffnet Marco das Dashboard, um Ferraris 1-Stopp-Strategie zu analysieren. Er beginnt mit der Strategie-Übersicht, um die Reifenwahl im gesamten Feld zu sehen. Dann wechselt er zur Lap-Time-Degradation und sieht, dass Leclercs Rundenzeiten auf dem Hard ab Runde 42 deutlich anstiegen. Die Frage ist: Wie hat Leclerc das trotzdem gemanagt? Er öffnet die Driver-Inputs-Analyse und vergleicht Runde 25 (frischer Hard) mit Runde 50 (alter Hard). Er sieht, dass Leclerc in der Parabolica deutlich sanfter bremste und das Gas später gab. Die Track Map bestätigt: in den schnellen Kurven verlor er Speed, in den Schikanen blieb er erstaunlich konstant. Schliesslich schaltet er den Vergleich mit Piastri zu, um zu sehen, wie gross der Degradationsunterschied zwischen 1-Stopp und 2-Stopp tatsächlich war.
+
+**Ziele:**
+
+- Schnelle Identifikation von Performance-Unterschieden pro Streckenabschnitt
+- Verständnis, wie sich Reifenabbau auf Rundenzeiten und Fahrverhalten auswirkt
+- Vergleich verschiedener Strategien anhand interaktiver Daten
+
+**Pain Points:**
+
+- Statische Grafiken reichen nicht aus, er braucht Interaktivität (Filter, Hover, Slider)
+- Zu viele Daten ohne klare Struktur sind nutzlos, er braucht geführte Exploration
+- Standard-TV-Grafiken bieten nicht die nötige analytische Tiefe
+
+**Erwartungen an das Dashboard:**
+
+- Interaktive Track Map mit Telemetrie-Overlay
+- Möglichkeit, verschiedene Runden und Fahrer zu vergleichen
+- Klare visuelle Hierarchie: Überblick zuerst, dann Detail-Drill-Down
+
+**Zitat:** *"Ich will nicht fünf verschiedene Tabellen durchsuchen. Zeig mir auf der Karte, wo wir Zeit verloren haben."*
+
+### Persona 2: Giulia, 28, F1 Data Journalist (Sekundäre Zielgruppe)
+
+**Hintergrund:** Giulia schreibt datengetriebene Artikel über Formel 1 für ein Online-Sportmagazin. Sie versteht die Grundlagen der Rennstrategie und kann mit Diagrammen arbeiten, ist aber keine Ingenieurin. Sie sucht nach visuell ansprechenden und verständlichen Darstellungen, die sie in ihren Artikeln einbetten oder als Grundlage für eigene Grafiken verwenden kann.
+
+**Technische Kompetenz:** Mittel. Komfortabel mit interaktiven Dashboards und Datenvisualisierungen. Versteht Sektorzeiten und Reifenstrategien, braucht aber keine Rohdaten-Exporte.
+
+**Nutzungsszenario:** Am Sonntagabend nach dem Rennen öffnet Giulia das Dashboard, um eine schnelle Visualisierung der Strategie-Unterschiede zu finden. Die Stint-Übersicht gibt ihr sofort ein Bild, das sie im Artikel beschreiben kann. Das Lap-Time-Diagramm nutzt sie, um den dramatischen Moment zu finden, in dem Piastri auf frischen Reifen aufholte, aber Leclerc die Position verteidigte. Sie macht Screenshots der relevanten Ansichten für ihren Artikel.
+
+**Ziele:**
+
+- Schnell die Schlüsselmomente des Rennens visuell erfassen
+- Verständliche Grafiken finden, die auch für Nicht-Ingenieure funktionieren
+- Die "Story" hinter den Zahlen entdecken
+
+**Pain Points:**
+
+- Zu technische Darstellungen ohne Kontext sind für ihre Leserschaft unbrauchbar
+- Sie hat wenig Zeit, sich in komplexe Filter-Logik einzuarbeiten
+- Fehlende Beschriftungen und Legenden machen Grafiken unbrauchbar
+
+**Erwartungen an das Dashboard:**
+
+- Klare, beschriftete Visualisierungen mit aussagekräftigen Titeln
+- Einstieg über die Strategie-Übersicht, nicht über Rohdaten
+- Tooltips, die auch ohne Fachwissen verständlich sind
+
+**Zitat:** *"Ich brauche die eine Grafik, die zeigt, warum Leclerc gewonnen hat, und die meine Leser sofort verstehen."*
+
+### Abgrenzung zwischen den Personas
+
+Marco repräsentiert die primäre Zielgruppe: technisch versiert, analytisch, braucht Tiefe und Interaktivität. Das Dashboard ist in erster Linie für diesen Nutzertyp optimiert. Giulia repräsentiert die sekundäre Zielgruppe: sie validiert, dass das Dashboard auch ohne Expertenwissen nutzbar ist und die Data Story klar kommuniziert wird. Wenn die Visualisierungen für Giulia verständlich sind, funktioniert die Erzählstruktur.
+
+## Visualisierungsprodukt
+
+### Format
+
+Interaktives Dashboard als **Streamlit-App**, gehostet auf Streamlit Community Cloud.
+
+### Geplante Visualisierungen
+
+Das Dashboard ist primär als Post-Race-Debriefing für Leclercs Rennen in Monza 2024 konzipiert. Der Fokus liegt auf seiner eigenen Performance-Entwicklung über das Rennen hinweg: Wie hat er seine Reifen über 31 Runden auf dem Hard-Compound gemanagt, um die 1-Stopp-Strategie zum Erfolg zu führen? Ein optionaler Fahrervergleich (z.B. mit Piastri oder Sainz) kann als Erweiterung in der Sidebar zugeschaltet werden, ist aber nicht die primäre Perspektive.
+
+**1. Strategie-Übersicht / Stint Chart (Einstiegsvisualisierung)**
+
+Horizontales Balkendiagramm der Stints aller Fahrer, farbkodiert nach Compound (Soft/Medium/Hard). Zeigt auf einen Blick die unterschiedlichen strategischen Ansätze im Feld und macht sofort sichtbar, dass Leclerc als einer von wenigen eine 1-Stopp-Strategie gefahren ist. Pit-Stop-Zeitpunkte sind als Trennlinien zwischen den Stints erkennbar. Diese Visualisierung ist der Einstieg in die Data Story: Der Nutzer sieht das "Was" und fragt sich "Warum hat das funktioniert?".
+
+**2. Lap Time Degradation (Reifenabbau)**
+
+Liniendiagramm von Leclercs Rundenzeiten über die Rundennummer, farbkodiert nach Stint und Compound. Die zentrale Frage hier ist: Wie stark haben sich die Rundenzeiten pro Stint verschlechtert? Der Plot zeigt die Degradationskurve, also den Anstieg der Rundenzeiten mit zunehmendem Reifenalter (TyreLife). Pit Stops werden als vertikale Marker hervorgehoben. Eine Trendlinie pro Stint macht die Degradationsrate visuell greifbar und zeigt, ob Leclerc die Reifen gleichmässig abgebaut hat oder ob der Abbau gegen Ende exponentiell zugenommen hat. Optional kann ein zweiter Fahrer als Vergleichslinie eingeblendet werden, um die Degradationsunterschiede zwischen 1-Stopp und 2-Stopp sichtbar zu machen.
+
+**3. Driver Inputs (Fahrverhalten über das Rennen)**
+
+Diese Visualisierung zeigt, wie Leclerc sein Fahrverhalten im Laufe des Rennens angepasst hat, um die Reifen zu schonen. Dargestellt werden Throttle-Anwendung (Gaspedal-Intensität), Brake-Intensität und Brake-Punkte (wann und wie stark gebremst wird) sowie die Gangwahl in Schlüsselkurven. Der Vergleich erfolgt zwischen einer frühen Runde im Stint (z.B. Runde 25, frischer Hard) und einer späten Runde (z.B. Runde 50, alter Hard). So wird sichtbar, ob Leclerc in den späten Runden zum Beispiel sanfter gebremst, das Gas früher oder später gegeben oder in bestimmten Kurven einen niedrigeren Gang gewählt hat. Mögliche Darstellungsformen sind überlagerte Telemetrie-Traces (Throttle/Brake über die Streckendistanz) für zwei ausgewählte Runden oder ein Subplots-Layout, das Speed, Throttle und Brake untereinander zeigt.
+
+**4. Track Map mit Telemetrie-Overlay (Streckenanalyse)**
+
+Interaktive Streckenkarte basierend auf GPS-Koordinaten (X, Y), farbkodiert nach einer wählbaren Telemetrie-Variable (Speed, Throttle, Brake oder Gear). Ein Runden-Slider ermöglicht den direkten Vergleich verschiedener Runden. Die primäre Nutzung ist der Vergleich von Leclercs eigenen Runden zu verschiedenen Zeitpunkten im Rennen: Wie verändert sich das Speed-Profil zwischen Runde 25 und Runde 50? Wo auf der Strecke verliert er am meisten Zeit mit alternden Reifen? Die Track Map macht räumlich sichtbar, was die Telemetrie-Traces in Plot 3 zeitlich zeigen: In welchen Kurven und auf welchen Geraden sich das Fahrverhalten verändert hat.
+
+**5. Sektor-Analyse und Reifenabbau-Heatmap**
+
+Kombinierte Darstellung von Sektorzeiten und Reifenalter. Eine Heatmap zeigt die Sektorzeiten (Sektor 1, 2, 3) über die Runden, wobei die Farbintensität die Abweichung von Leclercs bester Sektorzeit darstellt. So wird pro Streckenabschnitt sichtbar, wo der Reifenabbau am stärksten zugeschlagen hat. Ergänzend kann ein Liniendiagramm die Sektorzeiten als Funktion des Reifenalters (TyreLife) darstellen, um den Degradationsverlauf pro Sektor zu isolieren. Diese Visualisierung beantwortet die Frage: Hat Leclerc in allen Sektoren gleichmässig Zeit verloren, oder gab es Abschnitte, in denen er trotz alter Reifen konstant geblieben ist?
+
+**6. Positions- und Gap-Verlauf (Rennkontext, optional)**
+
+Positionsverlauf über die Runden (Bump Chart) und zeitlicher Abstand zum nächsten Fahrer. Diese Visualisierung ordnet Leclercs Performance in den Rennkontext ein: Wann war der Vorsprung am grössten, wann wurde es eng? Sie ist vor allem dann relevant, wenn der optionale Fahrervergleich aktiviert ist, und zeigt die direkte Auswirkung der unterschiedlichen Strategien auf den Rennverlauf. Als eigenständige Visualisierung funktioniert sie auch ohne Vergleichsfahrer, indem sie Leclercs Gap zur Verfolgung über die Runden darstellt.
+
+### Optionaler Fahrervergleich
+
+In allen Visualisierungen (ausser dem Stint Chart, das ohnehin alle Fahrer zeigt) kann über einen Sidebar-Filter ein zweiter Fahrer als Vergleich zugeschaltet werden. Dies ist bewusst als optionale Erweiterung konzipiert, nicht als Pflichtansicht. Die primäre Data Story funktioniert vollständig mit Leclercs eigenen Daten. Der Vergleich bietet zusätzlichen Kontext, wenn gewünscht, zum Beispiel: Wie unterscheidet sich die Degradationskurve von Piastri (2-Stopp) gegenüber Leclerc (1-Stopp)? Oder: Wie vergleichen sich die Brems-Inputs von Leclerc und Sainz in der Parabolica in Runde 48?
+
+Die Implementierung des Fahrervergleichs wird als separater Arbeitsschritt nach den Kernvisualisierungen eingeplant und kann je nach Zeitbudget in der zweiten Projekthälfte (ab Coaching 2) umgesetzt werden.
+
+### Interaktivität
+
+- **Runden-Auswahl:** Slider oder Dropdown zum Auswählen spezifischer Runden, z.B. für den Vergleich "frühe Runde vs. späte Runde" in der Driver-Inputs-Analyse und der Track Map
+- **Telemetrie-Variable:** Auswahl der dargestellten Variable (Speed, Throttle, Brake, Gear) auf der Track Map
+- **Optionaler Fahrervergleich:** Zweiter Fahrer kann als Overlay zugeschaltet werden (Sidebar-Widget)
+- **Stint-Filter:** Auswahl des betrachteten Stints (Medium-Stint oder Hard-Stint)
+- **Cross-Filtering:** Filteränderungen in der Sidebar wirken sich auf alle relevanten Plots aus
+- **Dynamisches Re-Rendering:** Matplotlib-Plots werden bei jeder Filteränderung neu gerendert mit `st.pyplot()`
+
+## Technologie-Stack
+
+| Komponente | Tool | Begründung |
+|------------|------|------------|
+| Datenquelle | FastF1 (Python) | Offizielle F1-Timing-Daten, strukturierte API |
+| Datenverarbeitung | Pandas, NumPy | Standard Data-Science-Stack (im Kurs verwendet) |
+| Visualisierung | Matplotlib | Im Kurs eingeführtes Visualisierungsframework; volle Kontrolle über Design und Layout |
+| Dashboard | Streamlit | Python-natives Dashboard-Framework, einfaches Deployment |
+| Dokumentation | Quarto | Vom Kurs vorgegeben, reproduzierbare Dokumentation |
+| Versionskontrolle | GitHub | Vom Kurs vorgegeben, Team-Repository |
+| Hosting Dashboard | Streamlit Community Cloud | Kostenlos, öffentlich zugänglich |
+| Hosting Doku | GitHub Pages | Vom Kurs vorgegeben, via GitHub Actions Workflow |
+
+**Begründung Streamlit:** Streamlit erlaubt interaktive Dashboards direkt in Python ohne Web-Entwicklungskenntnisse. Matplotlib-Plots werden über `st.pyplot()` eingebunden, während Streamlit-Widgets (Slider, Selectboxen, Multiselect) die Interaktivität steuern. Kostenloses Cloud-Hosting über Streamlit Community Cloud. Der gesamte Stack bleibt konsistent in Python, wie vom Kurs gefordert.
+
+**Begründung Matplotlib:** Matplotlib ist das im Kurs eingeführte Visualisierungsframework und bietet volle Kontrolle über das visuelle Design (Farben, Layouts, Annotationen, Achsen). Die Interaktivität wird nicht innerhalb der Plots realisiert (wie bei Plotly), sondern über die Streamlit-Widgets: Der Nutzer wählt Fahrer, Runden oder Variablen über Sidebar-Filter, und die Matplotlib-Plots werden entsprechend neu gerendert. Dieser Ansatz trennt sauber zwischen Darstellung (Matplotlib) und Steuerung (Streamlit).
+
+## Zeitplan und Meilensteine
+
+| Phase | Meilenstein | Datum / Zeitraum | Bezug Semesterplan |
+|-------|-------------|------------------|-------------------|
+| 1. Setup und Exploration | Repo eingerichtet, FastF1-Daten geladen, erste EDA | 10.03. bis 17.03.2026 | Data and variable types, Designing text elements |
+| 2. Projektcharta | Entwurf Charta, Personas definiert, Data Story formuliert | 10.03. bis 20.03.2026 | Abgabe Projektcharta |
+| 3. Coaching 1 | Feedback auf Konzept und erste Visualisierungen | 24.03.2026 | Feedback/Coaching on concept |
+| 4. Kernvisualisierungen | Track Map, Lap Time Chart, Stint Chart implementiert | 20.03. bis 07.04.2026 | Visual Variables, Directory of Vis., Geo Data |
+| 5. Erweiterte Visualisierungen | Sektor-Analyse, Gap-Analyse, Dashboard-Layout | 07.04. bis 21.04.2026 | Gestalt Laws, Interactive Elements |
+| 6. Moodle-Test | Test zu Visualisierungskonzepten | 21.04.2026 | Moodle-Test |
+| 7. Coaching 2 und 3 | Iteratives Feedback auf Dashboard | 21.04. bis 05.05.2026 | On-site und Online Coaching |
+| 8. Finalisierung | Dashboard deployen, Dokumentation abschliessen | 05.05. bis 12.05.2026 | Individuelle Projektarbeit |
+| 9. Präsentation | Folien erstellen, Vortrag üben | 19.05.2026 | Presentation Training |
+| 10. Prüfung | Mündliche Gruppenpräsentation (10 Min. + 5 Min. Q&A) | Prüfungsperiode | Reguläre Prüfungsperiode |
+
+## Projekt-Organisation (Repo-Struktur)
+
+Gemäss der bereitgestellten Vorlage:
+
+| Phase | Code-Ordner | Dokumentation | Datei |
+|:------|:------------|:-------------|:------|
+| Project Understanding | (keine) | Projektcharta | `docs/project_charta.qmd` |
+| Data Acquisition and Exploration | `eda/` | Data Report | `docs/data_report.qmd` |
+| Visual Encoding and Design | `encoding-design/` | Visual Encoding and Design | `docs/viz_encoding_design.qmd` |
+| Evaluation | `evaluation/` | Evaluation | `docs/evaluation.qmd` |
+| Deployment | `deployment/` | Deployment | `docs/deployment.qmd` |
+
+Zusätzlich für die Streamlit-App:
+
+- `app/` enthält den Streamlit-Dashboard-Code (Hauptapplikation)
+- `data/` enthält zwischengespeicherte und aufbereitete Daten (nicht die rohen FastF1-Cache-Daten)
+
+## Risiken und Massnahmen
+
+| Risiko | Wahrscheinlichkeit | Massnahme |
+|--------|---------------------|-----------|
+| FastF1-API liefert unvollständige Telemetrie für Monza 2024 | Mittel | Daten in Phase 1 laden und Qualität prüfen; Fallback auf anderes Rennen |
+| Streamlit-Performance bei grossen Telemetrie-Daten | Hoch | Voraggregation, `st.cache_data`, Daten auf Runden-Ebene vorfiltern |
+| Track-Map-Animation komplex in Umsetzung | Mittel | MVP mit statischer Map + Runden-Dropdown; Animation als Stretch Goal |
+| Zeitmanagement im Teilzeitstudium | Hoch | Klare Meilensteine, wöchentliche Sync-Meetings, Issues in GitHub |
+| Cross-Filtering zwischen Plots technisch aufwändig | Mittel | Streamlit Session State nutzen; Fallback: unabhängige Filter pro Plot |
+
+## Abgrenzung (Out of Scope)
+
+- Vergleich über mehrere Rennwochenenden (zukünftige Erweiterung)
+- Machine-Learning-Modelle oder prädiktive Analysen
+- Echtzeit-Datenanbindung
+- Vergleich mit Fahrern ausserhalb des Monza-2024-Startfeldes
+
+## Referenzen
+
+- FastF1 Dokumentation: <https://docs.fastf1.dev/>
+- Streamlit Dokumentation: <https://docs.streamlit.io/>
+- Matplotlib: <https://matplotlib.org/>
