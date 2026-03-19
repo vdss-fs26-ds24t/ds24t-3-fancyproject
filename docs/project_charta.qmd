@@ -67,7 +67,7 @@ quadrantChart
     quadrant-2 Zufrieden halten
     quadrant-3 Beobachten
     quadrant-4 Informieren
-    Manuel Dömer: [0.82, 0.95]
+    Manuel Doemer: [0.82, 0.95]
     Wibke Weber: [0.78, 0.85]
     Projektteam: [0.92, 0.72]
     Persona Marco: [0.72, 0.32]
