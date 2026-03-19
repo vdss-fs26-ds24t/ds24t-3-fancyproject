@@ -50,7 +50,7 @@ Das Dashboard wird als Streamlit-App auf Streamlit Community Cloud veröffentlic
 |-------------|-------|---------------------|----------|
 | Dozent (Manuel Dömer) | Kursverantwortlicher, Bewertung | Qualität der Visualisierungen, Reproduzierbarkeit, Einhaltung der Kursanforderungen | Hoch |
 | Dozentin (Wibke Weber) | Kursverantwortliche, Bewertung | Personas, Zielgruppenorientierung, Kommunikationsqualität der Visualisierungen | Hoch |
-| Projektteam (Claudio, Stefan, Fynn) | Entwicklung und Präsentation | Lernerfolg, gute Note, praxisnahes Portfolio-Projekt | Hoch |
+| Projektteam (Claudio, Stefan, Fynn) | Entwicklung und Präsentation | Lernerfolg, praxisnahes Portfolio-Projekt | Hoch |
 | Endnutzer (Persona Marco) | Primäre Zielgruppe | Analytisch tiefes, interaktives Dashboard für Post-Race-Analyse | Mittel (indirekt) |
 | Endnutzer (Persona Giulia) | Sekundäre Zielgruppe | Verständliche, visuell ansprechende Darstellungen für Berichterstattung | Mittel (indirekt) |
 
