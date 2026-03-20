@@ -346,7 +346,7 @@ gantt
     section Präsentation
         Folien erstellen und Vortrag üben          :a14, 2026-05-12, 7d
         Präsentations Training                      :milestone, m6, 2026-05-19, 0d
-        Gruppenpräsentation                        :milestone, m7, 2026-05-25, 0d
+        Gruppenpräsentation (Datum tbd)            :milestone, m7, 2026-05-25, 0d
 ```
 
 ## Roles and Contact Details
