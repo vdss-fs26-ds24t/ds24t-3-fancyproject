@@ -3,7 +3,7 @@ title: "Projektcharta"
 subtitle: "Formel 1 Interaktives Rennanalyse Dashboard"
 ---
 
-## Context and Scope
+## Kontext und Umfang
 
 In der Formel 1 gewinnen oft die Teams, welche die richtige Strategie einsetzen. Ein detailiertes und qualitatives Debriefing mit allen Beteiligten des Rennens ist daher essenziell für eine erfolgreiche Renn-Saison. Um eine detailierte Übersicht der Strategien eines Rennens zu erhalten, brauchen die Teams eine Übersicht ihrer Renndaten in einem interaktiven Dashboard mit sinnvollen Grafiken.
 
@@ -11,7 +11,7 @@ Das Projekt entwickelt ein interaktives Dashboard für das Team Ferrari, welches
 
 Das Dashboard wird als Streamlit-App auf Streamlit Community Cloud veröffentlicht und ist öffentlich zugänglich. Die Projektdokumentation wird als Quarto-Website auf GitHub Pages bereitgestellt.
 
-## Project Objectives and Success Criteria
+## Projektziele und Erfolgskriterien
 
 ### Ziele (aus Nutzerperspektive)
 
@@ -31,7 +31,7 @@ Das Dashboard wird als Streamlit-App auf Streamlit Community Cloud veröffentlic
 | Reproduzierbarkeit | Vollständig via GitHub-Repo und `uv sync` nachvollziehbar |
 | Dokumentation | Alle 5 Quarto-Dokumente gemäss Repo-Vorlage ausgefüllt |
 
-### Out of Scope
+### Nicht im Scope
 
 - Vergleich über mehrere Rennwochenenden (zukünftige Erweiterung)
 - Analyse anderer Sessions (Qualifying, Practice, Sprint)
@@ -39,7 +39,7 @@ Das Dashboard wird als Streamlit-App auf Streamlit Community Cloud veröffentlic
 - Echtzeit-Datenanbindung
 - Vergleich mit Fahrern anderer Teams
 
-## Stakeholder Analysis
+## Stakeholder-Analyse
 
 | Stakeholder | Rolle | Interesse am Projekt | Einfluss |
 |-------------|-------|---------------------|----------|
@@ -69,9 +69,9 @@ quadrantChart
     Persona Giulia: [0.55, 0.2]
 ```
 
-## User Analysis
+## Nutzeranalyse
 
-### Persona 1: Marco, 34, Race Strategy Engineer (Primäre Zielgruppe)
+### Persona 1: Marco, 34, Renn-Strategieingenieur (Primäre Zielgruppe)
 
 **Hintergrund:** Marco arbeitet als Strategieingenieur bei einem Formel-1-Mittelfeld-Team. Nach jedem Rennwochenende erstellt er einen Post-Race-Report, in dem er die Performance des eigenen Fahrers mit der Konkurrenz vergleicht. Besonders interessiert ihn, wie andere Teams strategische Vorteile erzielen konnten.
 
@@ -137,7 +137,7 @@ quadrantChart
 
 **Zitat:** *"Ich brauche die eine Grafik, die zeigt, warum Ferrari gewonnen hat, und die meine Leser sofort verstehen."*
 
-## Situation Assessment
+## Situationsanalyse
 
 ### Verfügbare Ressourcen
 
@@ -205,17 +205,17 @@ Matplotlib wird als Visualisierungsbibliothek eingesetzt, weil es volle Kontroll
 | X, Y (GPS) | float | Numerisch (kontinuierlich) | Intervall |
 | PitInTime, PitOutTime | timedelta | Numerisch (kontinuierlich) | Ratio |
 
-## Visualization Concept
+## Visualisierungskonzept
 
 Das Visualization Concept entspricht der Value-Map-Seite des Value Proposition Canvas (vgl. Osterwalder et al., 2014): Es beschreibt, wie das Dashboard die User Tasks der Personas unterstützt, ihre Pains lindert und Gains erzeugt. Die Wertdimensionen der einzelnen Visualisierungen orientieren sich an den Frameworks von Card et al. (Card et al., 1999) (kognitive Verstärkung durch Visualisierung) und van Wijk (van Wijk, 2005) (Kosten-Nutzen-Modell der Visualisierung).
 
 Das Dashboard ist als interaktives Post-Race-Analyse-Tool konzipiert, das das gewählte Rennen der Ferrari-Fahrer aus verschiedenen Perspektiven beleuchtet. Der Nutzer wählt zunächst Saison und Grand Prix aus; anschliessend kann er frei zwischen den Ansichten navigieren und über Sidebar-Filter (Runde, Stint, Telemetrie-Variable, optionaler Fahrervergleich) die Darstellung steuern.
 
-### Product Form
+### Produktform
 
 Interaktives Dashboard als Streamlit-App mit vier bis sechs Analysebereichen, gehostet auf Streamlit Community Cloud. Der Nutzer wählt zu Beginn Saison und Grand Prix aus; das Dashboard lädt die entsprechenden Ferrari-Daten und zeigt die Analysen für den primären Fahrer. Ein optionaler Fahrervergleich (zweiter Ferrari-Fahrer) kann über die Sidebar zugeschaltet werden.
 
-### Visual Encodings
+### Visuelle Kodierungen
 
 **1. Strategie-Übersicht / Stint Chart**
 
@@ -226,8 +226,7 @@ Horizontales Balkendiagramm der Stints aller Fahrer, farbkodiert nach Compound (
 - *Ästhetischer Wert:* Die bekannten F1-Compound-Farben (Rot/Gelb/Grau) schaffen Wiedererkennung und Vertrauen bei F1-affinen Nutzern.
 - *Adressierte Pains/Gains:* Lindert Marcos Pain "Rohdaten aus verschiedenen Quellen zusammenführen" und Giulias Pain "zu technische Darstellungen". Erzeugt Giulias Gain "Einstieg über die Strategie-Übersicht".
 
-**2. Lap Time Degradation**
-
+**2. Rundenzeiten**
 Liniendiagramm der Rundenzeiten des ausgewählten Ferrari-Fahrers über die Rundennummer, farbkodiert nach Stint und Compound. Trendlinie pro Stint zeigt die Degradationsrate. Optional kann der zweite Ferrari-Fahrer als Vergleichslinie eingeblendet werden.
 
 - *Kognitiver Wert:* Die Trendlinie macht die Degradationsrate quantifizierbar. Breakpoints (ab welcher Runde steigt die Zeit steil an?) werden visuell erkennbar (Card et al., 1999).
@@ -235,7 +234,7 @@ Liniendiagramm der Rundenzeiten des ausgewählten Ferrari-Fahrers über die Rund
 - *Ästhetischer Wert:* Die Stint-Farbkodierung gliedert das Diagramm visuell in Phasen und verhindert eine unübersichtliche Liniensuppe.
 - *Adressierte Pains/Gains:* Lindert Marcos Pain "zu viele Daten ohne klare Struktur" durch fokussierte Degradationsansicht. Erzeugt Marcos Gain "Degradationsverläufe vergleichen".
 
-**3. Driver Inputs (Fahrverhalten)**
+**3. Fahrverhalten**
 
 Überlagerte Telemetrie-Traces (Throttle, Brake, Speed über Streckendistanz) für zwei ausgewählte Runden des Ferrari-Fahrers, z.B. eine frühe Runde (frischer Reifen) vs. eine späte Runde (alter Reifen). Als Subplots-Layout mit Speed, Throttle und Brake untereinander dargestellt.
 
@@ -244,7 +243,7 @@ Liniendiagramm der Rundenzeiten des ausgewählten Ferrari-Fahrers über die Rund
 - *Ästhetischer Wert:* Das Subplots-Layout mit geteilter X-Achse ist ein etabliertes Format in der Motorsport-Analyse und schafft Vertrautheit bei der Zielgruppe.
 - *Adressierte Pains/Gains:* Lindert Marcos Pain "statische Grafiken reichen nicht" durch interaktiven Rundenvergleich. Erzeugt Marcos Gain "Telemetrie pro Streckenabschnitt auswerten".
 
-**4. Track Map mit Telemetrie-Overlay**
+**4. Streckenkarte mit Telemetrie-Overlay**
 
 Streckenkarte basierend auf GPS-Koordinaten (X, Y), farbkodiert nach einer wählbaren Telemetrie-Variable (Speed, Throttle, Brake oder Gear). Runden-Slider für Vergleich verschiedener Rennphasen.
 
@@ -271,7 +270,7 @@ Positionsverlauf über die Runden (Bump Chart) und zeitlicher Abstand zum nächs
 - *Ästhetischer Wert:* Der Bump Chart erzeugt durch die kreuzenden Linien eine visuelle Dynamik, die den Rennverlauf lebendig wirken lässt.
 - *Adressierte Pains/Gains:* Erzeugt Giulias Gain "Schlüsselmomente des Rennens visuell erfassen". Liefert Marco den Rennkontext für seine Detailanalysen.
 
-### Interactivity
+### Interaktivität
 
 Die Interaktivität wird über Streamlit-Widgets realisiert, nicht innerhalb der Matplotlib-Plots:
 
@@ -284,7 +283,7 @@ Die Interaktivität wird über Streamlit-Widgets realisiert, nicht innerhalb der
 - **Cross-Filtering:** Filteränderungen in der Sidebar wirken sich auf alle relevanten Plots aus
 - **Dynamisches Re-Rendering:** Matplotlib-Plots werden bei jeder Filteränderung über `st.pyplot()` neu gerendert
 
-### Narrative and Annotation
+### Narration und Annotation
 
 Das Dashboard enthält keine lineare Erzählstruktur, sondern ermöglicht freie Navigation. Kontextinformationen werden über folgende Elemente bereitgestellt:
 
@@ -294,7 +293,7 @@ Das Dashboard enthält keine lineare Erzählstruktur, sondern ermöglicht freie 
 - Annotationen an Schlüsselstellen (z.B. Pit-Stop-Marker, Stint-Wechsel)
 - Kurze Erklärungstexte über den Plots, die beschreiben, was dargestellt wird
 
-### Target Medium and Integration
+### Zielmedium und Integration
 
 Die Streamlit-App wird auf Streamlit Community Cloud gehostet und ist über einen öffentlichen Link erreichbar. Die App ist für Desktop-Browser optimiert (primäre Zielgruppe Marco arbeitet am grossen Monitor), funktioniert aber auch auf Laptop-Bildschirmen (Giulias Nutzungsszenario).
 
@@ -302,7 +301,7 @@ Die Streamlit-App wird auf Streamlit Community Cloud gehostet und ist über eine
 
 In allen Visualisierungen (ausser dem Stint Chart, das ohnehin alle Fahrer zeigt) kann über einen Sidebar-Filter der zweite Ferrari-Fahrer als Vergleich zugeschaltet werden. Dies ist bewusst als optionale Erweiterung konzipiert, nicht als Pflichtansicht. Das Dashboard funktioniert vollständig mit den Daten des primär gewählten Fahrers. Die Implementierung wird als separater Arbeitsschritt nach den Kernvisualisierungen eingeplant und kann je nach Zeitbudget in der zweiten Projekthälfte umgesetzt werden.
 
-## Project Plan
+## Projektplan
 
 ```{mermaid}
 %%| label: fig-project-plan
@@ -346,7 +345,7 @@ gantt
         Gruppenpräsentation (Datum tbd)            :milestone, m7, 2026-05-25, 0d
 ```
 
-## Roles and Contact Details
+## Rollen und Kontaktangaben
 
 | Name | Rolle | Verantwortlichkeiten | Kontakt |
 |------|-------|----------------------|---------|
