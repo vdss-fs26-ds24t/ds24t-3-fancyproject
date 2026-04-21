@@ -1,20 +1,13 @@
 ---
 title: "Projektcharta"
-subtitle: "Leclerc@Monza 2024: Interactive Race Analytics Dashboard"
+subtitle: "Formel 1 Interaktives Rennanalyse Dashboard"
 ---
 
 ## Context and Scope
 
-Der Grosse Preis von Italien 2024 in Monza war eines der taktisch spannendsten Rennen der Saison: Charles Leclerc gewann mit einer riskanten 1-Stopp-Strategie, während die meisten Konkurrenten (inklusive McLaren und Red Bull) auf zwei Stopps setzten. Diese strategische Entscheidung und ihre Auswirkung auf Reifenabbau, Rundenzeiten und Fahrverhalten bieten eine ideale Grundlage für eine datengetriebene Rennanalyse.
+In der Formel 1 gewinnen oft die Teams, welche die richtige Strategie einsetzen. Ein detailiertes und qualitatives Debriefing mit allen Beteiligten des Rennens ist daher essenziell für eine erfolgreiche Renn-Saison. Um eine detailierte Übersicht der Strategien eines Rennens zu erhalten, brauchen die Teams eine Übersicht ihrer Renndaten in einem interaktiven Dashboard mit sinnvollen Grafiken.
 
-Das Projekt entwickelt ein interaktives Dashboard, das Leclercs Rennen in Monza 2024 aus verschiedenen Perspektiven analysierbar macht. Die Daten stammen aus der FastF1 Python API, die offiziell bereitgestellte F1-Timing- und Telemetriedaten strukturiert aufbereitet.
-
-Das Dashboard soll folgende Aspekte adressieren:
-
-- Wie hat sich Leclercs Reifenabbau (Degradation) über das Rennen entwickelt?
-- Wie hat Leclerc sein Fahrverhalten (Bremsen, Gas, Gangwahl) angepasst, um die Reifen zu schonen?
-- In welchen Streckenabschnitten und Sektoren war der Reifenabbau am stärksten spürbar?
-- Wie ordnet sich Leclercs 1-Stopp-Strategie im Vergleich zum restlichen Feld ein?
+Das Projekt entwickelt ein interaktives Dashboard für das Team Ferrari, welches eine detailierte Übersicht eines einzelnen Rennens aus verschiedenen Perspektiven gibt. Das zu analysierende Rennen wird vom Nutzer im Dashboard direkt ausgewählt. Die Daten stammen aus der FastF1 Python API, die offiziell bereitgestellte F1-Timing- und Telemetriedaten strukturiert aufbereitet.
 
 Das Dashboard wird als Streamlit-App auf Streamlit Community Cloud veröffentlicht und ist öffentlich zugänglich. Die Projektdokumentation wird als Quarto-Website auf GitHub Pages bereitgestellt.
 
@@ -22,7 +15,8 @@ Das Dashboard wird als Streamlit-App auf Streamlit Community Cloud veröffentlic
 
 ### Ziele (aus Nutzerperspektive)
 
-- **Rennanalyse ermöglichen:** Nutzer können Leclercs Performance in Monza 2024 interaktiv analysieren, von der Strategie-Übersicht bis zur Telemetrie auf Kurvenebene.
+- **Rennauswahl ermöglichen:** Nutzer können das zu analysierende Rennen (Saison und Grand Prix) direkt im Dashboard auswählen. Die Daten werden daraufhin automatisch geladen.
+- **Rennanalyse ermöglichen:** Nutzer können die Performance der Ferrari-Fahrer im gewählten Rennen interaktiv analysieren, von der Strategie-Übersicht bis zur Telemetrie auf Kurvenebene.
 - **Reifenmanagement sichtbar machen:** Die Entwicklung der Rundenzeiten und des Fahrverhaltens über das Reifenalter hinweg wird visuell nachvollziehbar.
 - **Explorative Analyse unterstützen:** Über Filter (Runde, Stint, Telemetrie-Variable) kann der Nutzer eigene Fragestellungen untersuchen, ohne auf vordefinierte Ansichten beschränkt zu sein.
 
@@ -31,6 +25,7 @@ Das Dashboard wird als Streamlit-App auf Streamlit Community Cloud veröffentlic
 | Kriterium | Zielwert |
 |-----------|----------|
 | Anzahl Analysebereiche im Dashboard | Mindestens 4 (Strategie, Degradation, Driver Inputs, Track Map) |
+| Rennauswahl | Nutzer kann Saison und Grand Prix frei wählen; Dashboard lädt die entsprechenden Daten |
 | Interaktive Filteroptionen | Mindestens 3 globale Filter (Runde, Stint, Telemetrie-Variable) |
 | Ladezeit der Streamlit-App | Unter 10 Sekunden für initiales Laden |
 | Reproduzierbarkeit | Vollständig via GitHub-Repo und `uv sync` nachvollziehbar |
@@ -42,7 +37,7 @@ Das Dashboard wird als Streamlit-App auf Streamlit Community Cloud veröffentlic
 - Analyse anderer Sessions (Qualifying, Practice, Sprint)
 - Machine-Learning-Modelle oder prädiktive Analysen
 - Echtzeit-Datenanbindung
-- Vergleich mit Fahrern ausserhalb des Monza-2024-Startfeldes
+- Vergleich mit Fahrern anderer Teams
 
 ## Stakeholder Analysis
 
@@ -87,7 +82,7 @@ quadrantChart
 - **Technische Umgebung:** Desktop (Büro), grosser Monitor, Maus-Interaktion.
 - **Nutzungshäufigkeit:** Wöchentlich nach jedem Rennwochenende.
 
-**Nutzungsszenario:** Am Montagmorgen nach dem Monza-GP öffnet Marco das Dashboard, um Ferraris 1-Stopp-Strategie zu analysieren. Er beginnt mit der Strategie-Übersicht, um die Reifenwahl im gesamten Feld zu sehen. Dann wechselt er zur Lap-Time-Degradation und sieht, dass Leclercs Rundenzeiten auf dem Hard ab Runde 42 deutlich anstiegen. Er öffnet die Driver-Inputs-Analyse und vergleicht Runde 25 (frischer Hard) mit Runde 50 (alter Hard). Er sieht, dass Leclerc in der Parabolica deutlich sanfter bremste und das Gas später gab. Die Track Map bestätigt: in den schnellen Kurven verlor er Speed, in den Schikanen blieb er erstaunlich konstant.
+**Nutzungsszenario:** Am Montagmorgen nach dem letzten Rennen öffnet Marco das Dashboard und wählt in der Rennauswahl die aktuelle Saison und den entsprechenden Grand Prix aus. Er beginnt mit der Strategie-Übersicht, um die Reifenwahl im gesamten Feld zu sehen und die Ferrari-Strategie einzuordnen. Dann wechselt er zur Lap-Time-Degradation und sieht ab welcher Runde die Rundenzeiten des Ferrari-Fahrers merklich anstiegen. Er öffnet die Driver-Inputs-Analyse und vergleicht eine frühe Runde (frischer Reifen) mit einer späten Runde (alter Reifen). Die Track Map bestätigt, in welchen Streckenabschnitten Speed verloren oder gewonnen wurde.
 
 **User Tasks (Jobs):**
 
@@ -120,7 +115,7 @@ quadrantChart
 - **Technische Umgebung:** Laptop, teilweise Tablet. Braucht screenshot-fähige Visualisierungen.
 - **Nutzungshäufigkeit:** Nach ausgewählten Rennen mit besonderer Story.
 
-**Nutzungsszenario:** Am Sonntagabend nach dem Rennen öffnet Giulia das Dashboard, um eine schnelle Visualisierung der Strategie-Unterschiede zu finden. Die Stint-Übersicht gibt ihr sofort ein Bild, das sie im Artikel beschreiben kann. Das Lap-Time-Diagramm nutzt sie, um den dramatischen Moment zu finden, in dem die Konkurrenz auf frischen Reifen aufholte, aber Leclerc die Position verteidigte. Sie macht Screenshots der relevanten Ansichten für ihren Artikel.
+**Nutzungsszenario:** Am Sonntagabend nach dem Rennen öffnet Giulia das Dashboard, wählt das soeben gefahrene Rennen aus und sucht nach einer prägnanten Visualisierung der Strategie-Unterschiede. Die Stint-Übersicht gibt ihr sofort ein Bild, das sie im Artikel beschreiben kann. Das Lap-Time-Diagramm nutzt sie, um den dramatischen Moment zu finden, in dem die Konkurrenz auf frischen Reifen aufholte, aber der Ferrari-Fahrer die Position verteidigte. Sie macht Screenshots der relevanten Ansichten für ihren Artikel.
 
 **User Tasks (Jobs):**
 
@@ -140,13 +135,13 @@ quadrantChart
 - Einstieg über die Strategie-Übersicht, nicht über Rohdaten
 - Tooltips und Annotationen, die auch ohne Fachwissen verständlich sind
 
-**Zitat:** *"Ich brauche die eine Grafik, die zeigt, warum Leclerc gewonnen hat, und die meine Leser sofort verstehen."*
+**Zitat:** *"Ich brauche die eine Grafik, die zeigt, warum Ferrari gewonnen hat, und die meine Leser sofort verstehen."*
 
 ## Situation Assessment
 
 ### Verfügbare Ressourcen
 
-**Daten:** Die FastF1 Python API liefert strukturierte Timing-, Telemetrie- und Ergebnisdaten für alle Rennen ab 2018. Die Daten für Monza 2024 umfassen ca. 1'000+ Beobachtungen auf Lap-Ebene und ca. 100'000+ auf Telemetrie-Ebene, mit 15+ Merkmalen (numerisch und kategoriell). Die Datenverfügbarkeit und -qualität muss in der ersten Projektphase geprüft werden.
+**Daten:** Die FastF1 Python API liefert strukturierte Timing-, Telemetrie- und Ergebnisdaten für alle Rennen ab 2018. Ein typisches F1-Rennen umfasst ca. 1'000+ Beobachtungen auf Lap-Ebene (ca. 20 Fahrer × 50–70 Runden) und ca. 100'000+ auf Telemetrie-Ebene, mit 15+ Merkmalen (numerisch und kategoriell). Die Datenverfügbarkeit und -qualität muss in der ersten Projektphase anhand eines Beispielrennens geprüft werden.
 
 **Personal:** Drei Data-Science-Studenten im Teilzeitstudium (Claudio Calamia, Stefan Hohl, Fynn Fischer). Alle verfügen über Python-Kenntnisse und Erfahrung mit Pandas und Matplotlib.
 
@@ -169,7 +164,7 @@ Matplotlib wird als Visualisierungsbibliothek eingesetzt, weil es volle Kontroll
 
 | Risiko | Wahrscheinlichkeit | Massnahme |
 |--------|---------------------|-----------|
-| FastF1-API liefert unvollständige Telemetrie für Monza 2024 | Mittel | Daten in Phase 1 laden und Qualität prüfen; Fallback auf anderes Rennen |
+| FastF1-API liefert unvollständige Telemetrie für bestimmte Rennen | Mittel | Daten in Phase 1 anhand eines Beispielrennens prüfen; fehlende Rennen in der Auswahl ausblenden |
 | Streamlit-Performance bei grossen Telemetrie-Daten | Hoch | Voraggregation, `st.cache_data`, Daten auf Runden-Ebene vorfiltern |
 | Track-Map-Animation komplex in Umsetzung | Mittel | MVP mit statischer Map + Runden-Dropdown; Animation als Stretch Goal |
 | Zeitmanagement im Teilzeitstudium | Hoch | Klare Meilensteine, wöchentliche Sync-Meetings, Issues in GitHub |
@@ -177,7 +172,7 @@ Matplotlib wird als Visualisierungsbibliothek eingesetzt, weil es volle Kontroll
 
 ### Datenanforderungen (Kursvorlage)
 
-- Mindestens 100 Beobachtungen: über 1'000 auf Lap-Ebene, über 100'000 auf Telemetrie-Ebene
+- Mindestens 100 Beobachtungen: über 1'000 auf Lap-Ebene, über 100'000 auf Telemetrie-Ebene (pro Rennen)
 - Mindestens 6 Merkmale: 15+ Merkmale identifiziert
 - Kombination numerisch und kategoriell: Mix vorhanden (z.B. Speed vs. Compound)
 - Keine im Kurs anderweitig verwendeten oder davon abgeleiteten Daten
@@ -186,7 +181,7 @@ Matplotlib wird als Visualisierungsbibliothek eingesetzt, weil es volle Kontroll
 
 | Datenebene | Geschätzte Beobachtungen | Beschreibung |
 |------------|--------------------------|--------------|
-| Lap Data | ca. 1'000+ (ca. 20 Fahrer x 53 Runden) | Rundenzeiten, Sektorzeiten, Reifentyp, Pit Stops |
+| Lap Data | ca. 1'000+ (ca. 20 Fahrer × 50–70 Runden) | Rundenzeiten, Sektorzeiten, Reifentyp, Pit Stops |
 | Telemetry Data | ca. 100'000+ (hochfrequente Abtastung) | Speed, Throttle, Brake, Gear, RPM, DRS, GPS-Position |
 | Session Results | ca. 20 (pro Session) | Endpositionen, Teamzuordnung, Status |
 
@@ -214,11 +209,11 @@ Matplotlib wird als Visualisierungsbibliothek eingesetzt, weil es volle Kontroll
 
 Das Visualization Concept entspricht der Value-Map-Seite des Value Proposition Canvas (vgl. Osterwalder et al., 2014): Es beschreibt, wie das Dashboard die User Tasks der Personas unterstützt, ihre Pains lindert und Gains erzeugt. Die Wertdimensionen der einzelnen Visualisierungen orientieren sich an den Frameworks von Card et al. (Card et al., 1999) (kognitive Verstärkung durch Visualisierung) und van Wijk (van Wijk, 2005) (Kosten-Nutzen-Modell der Visualisierung).
 
-Das Dashboard ist als interaktives Post-Race-Analyse-Tool konzipiert, das Leclercs Rennen in Monza 2024 aus verschiedenen Perspektiven beleuchtet. Der Nutzer kann frei zwischen den Ansichten navigieren und über Sidebar-Filter (Runde, Stint, Telemetrie-Variable, optionaler Fahrervergleich) die Darstellung steuern.
+Das Dashboard ist als interaktives Post-Race-Analyse-Tool konzipiert, das das gewählte Rennen der Ferrari-Fahrer aus verschiedenen Perspektiven beleuchtet. Der Nutzer wählt zunächst Saison und Grand Prix aus; anschliessend kann er frei zwischen den Ansichten navigieren und über Sidebar-Filter (Runde, Stint, Telemetrie-Variable, optionaler Fahrervergleich) die Darstellung steuern.
 
 ### Product Form
 
-Interaktives Dashboard als Streamlit-App mit vier bis sechs Analysebereichen, gehostet auf Streamlit Community Cloud. Das Dashboard funktioniert primär als Analyse-Tool für Leclercs eigene Performance. Ein optionaler Fahrervergleich kann über die Sidebar zugeschaltet werden.
+Interaktives Dashboard als Streamlit-App mit vier bis sechs Analysebereichen, gehostet auf Streamlit Community Cloud. Der Nutzer wählt zu Beginn Saison und Grand Prix aus; das Dashboard lädt die entsprechenden Ferrari-Daten und zeigt die Analysen für den primären Fahrer. Ein optionaler Fahrervergleich (zweiter Ferrari-Fahrer) kann über die Sidebar zugeschaltet werden.
 
 ### Visual Encodings
 
@@ -233,7 +228,7 @@ Horizontales Balkendiagramm der Stints aller Fahrer, farbkodiert nach Compound (
 
 **2. Lap Time Degradation**
 
-Liniendiagramm von Leclercs Rundenzeiten über die Rundennummer, farbkodiert nach Stint und Compound. Trendlinie pro Stint zeigt die Degradationsrate. Optional kann ein zweiter Fahrer als Vergleichslinie eingeblendet werden.
+Liniendiagramm der Rundenzeiten des ausgewählten Ferrari-Fahrers über die Rundennummer, farbkodiert nach Stint und Compound. Trendlinie pro Stint zeigt die Degradationsrate. Optional kann der zweite Ferrari-Fahrer als Vergleichslinie eingeblendet werden.
 
 - *Kognitiver Wert:* Die Trendlinie macht die Degradationsrate quantifizierbar. Breakpoints (ab welcher Runde steigt die Zeit steil an?) werden visuell erkennbar (Card et al., 1999).
 - *Kommunikativer Wert:* Rundenzeiten sind die universellste F1-Metrik. Beide Personas verstehen sofort, was "steigende Linie = langsamere Runden" bedeutet.
@@ -242,10 +237,10 @@ Liniendiagramm von Leclercs Rundenzeiten über die Rundennummer, farbkodiert nac
 
 **3. Driver Inputs (Fahrverhalten)**
 
-Überlagerte Telemetrie-Traces (Throttle, Brake, Speed über Streckendistanz) für zwei ausgewählte Runden, z.B. Runde 25 (frischer Hard) vs. Runde 50 (alter Hard). Als Subplots-Layout mit Speed, Throttle und Brake untereinander dargestellt.
+Überlagerte Telemetrie-Traces (Throttle, Brake, Speed über Streckendistanz) für zwei ausgewählte Runden des Ferrari-Fahrers, z.B. eine frühe Runde (frischer Reifen) vs. eine späte Runde (alter Reifen). Als Subplots-Layout mit Speed, Throttle und Brake untereinander dargestellt.
 
 - *Kognitiver Wert:* Der direkte Overlay-Vergleich zweier Runden macht Anpassungen im Fahrverhalten sichtbar: spätere Gas-Anwendung, sanfteres Bremsen, andere Gangwahl. Die Kopplung von Throttle, Brake und Speed über die gleiche Distanz-Achse ermöglicht kausale Interpretation (Card et al., 1999).
-- *Kommunikativer Wert:* Primär für Persona Marco, der Telemetrie-Traces lesen kann. Für Persona Giulia sind Annotationen an Schlüsselstellen (z.B. "Hier bremst Leclerc 15m später") nötig.
+- *Kommunikativer Wert:* Primär für Persona Marco, der Telemetrie-Traces lesen kann. Für Persona Giulia sind Annotationen an Schlüsselstellen nötig (z.B. "Hier bremst der Fahrer 15m später").
 - *Ästhetischer Wert:* Das Subplots-Layout mit geteilter X-Achse ist ein etabliertes Format in der Motorsport-Analyse und schafft Vertrautheit bei der Zielgruppe.
 - *Adressierte Pains/Gains:* Lindert Marcos Pain "statische Grafiken reichen nicht" durch interaktiven Rundenvergleich. Erzeugt Marcos Gain "Telemetrie pro Streckenabschnitt auswerten".
 
@@ -255,12 +250,12 @@ Streckenkarte basierend auf GPS-Koordinaten (X, Y), farbkodiert nach einer wähl
 
 - *Kognitiver Wert:* Die räumliche Darstellung macht sofort sichtbar, wo auf der Strecke Performance gewonnen oder verloren wird. Die Farbkodierung ermöglicht das Erkennen von Mustern, die in tabellarischen Daten verborgen bleiben (van Wijk, 2005).
 - *Kommunikativer Wert:* Streckenvisualisierungen sind aus der F1-Berichterstattung bekannt und für beide Personas intuitiv verständlich.
-- *Ästhetischer Wert:* Die Streckenkarte ist das visuelle Herzstück des Dashboards und schafft einen starken Wiedererkennungseffekt zu Monza.
+- *Ästhetischer Wert:* Die Streckenkarte ist das visuelle Herzstück des Dashboards und schafft einen starken Wiedererkennungseffekt zum gewählten Grand-Prix-Kurs.
 - *Adressierte Pains/Gains:* Erzeugt Marcos zentralen Gain "räumliche Darstellung, die sofort zeigt, wo Zeit gewonnen oder verloren wurde". Lindert Giulias Pain "fehlende Beschriftungen" durch Kurvenbezeichnungen und Sektorgrenzen auf der Karte.
 
 **5. Sektor-Analyse und Reifenabbau-Heatmap**
 
-Heatmap der Sektorzeiten (Sektor 1, 2, 3) über die Runden, wobei die Farbintensität die Abweichung von Leclercs bester Sektorzeit darstellt. Ergänzend Sektorzeiten als Funktion des Reifenalters (TyreLife).
+Heatmap der Sektorzeiten (Sektor 1, 2, 3) über die Runden, wobei die Farbintensität die Abweichung von der besten Sektorzeit des Ferrari-Fahrers darstellt. Ergänzend Sektorzeiten als Funktion des Reifenalters (TyreLife).
 
 - *Kognitiver Wert:* Isoliert den Degradationsverlauf pro Sektor. Beantwortet die Frage, ob Leclerc in allen Sektoren gleichmässig Zeit verloren hat oder ob bestimmte Abschnitte stärker betroffen waren (van Wijk, 2005).
 - *Kommunikativer Wert:* Die Heatmap-Darstellung verdichtet viele Datenpunkte auf kleinem Raum und macht Trends ohne Detailanalyse erkennbar.
@@ -269,7 +264,7 @@ Heatmap der Sektorzeiten (Sektor 1, 2, 3) über die Runden, wobei die Farbintens
 
 **6. Positions- und Gap-Verlauf (optional)**
 
-Positionsverlauf über die Runden (Bump Chart) und zeitlicher Abstand zum nächsten Fahrer. Ordnet Leclercs Performance in den Rennkontext ein.
+Positionsverlauf über die Runden (Bump Chart) und zeitlicher Abstand zum nächsten Fahrer. Ordnet die Performance des Ferrari-Fahrers in den Rennkontext ein.
 
 - *Kognitiver Wert:* Zeigt die Auswirkung der Strategie auf das Rennresultat. Macht sichtbar, wann der Vorsprung am grössten war und wann es eng wurde.
 - *Kommunikativer Wert:* Position und Gap sind für beide Personas die greifbarsten Rennmetriken.
@@ -280,10 +275,12 @@ Positionsverlauf über die Runden (Bump Chart) und zeitlicher Abstand zum nächs
 
 Die Interaktivität wird über Streamlit-Widgets realisiert, nicht innerhalb der Matplotlib-Plots:
 
+- **Rennauswahl:** Dropdown für Saison (Jahr) und Grand Prix; beim Wechsel werden alle Daten neu geladen und alle Plots aktualisiert
+- **Fahrer-Auswahl:** Auswahl des primär zu analysierenden Ferrari-Fahrers (relevant wenn Ferrari zwei Fahrer im Rennen hat)
 - **Runden-Auswahl:** Slider oder Dropdown zum Auswählen spezifischer Runden, z.B. für den Vergleich "frühe Runde vs. späte Runde" in der Driver-Inputs-Analyse und der Track Map
 - **Telemetrie-Variable:** Auswahl der dargestellten Variable (Speed, Throttle, Brake, Gear) auf der Track Map
-- **Stint-Filter:** Auswahl des betrachteten Stints (Medium-Stint oder Hard-Stint)
-- **Optionaler Fahrervergleich:** Zweiter Fahrer kann als Overlay zugeschaltet werden
+- **Stint-Filter:** Auswahl des betrachteten Stints
+- **Optionaler Fahrervergleich:** Zweiter Ferrari-Fahrer kann als Overlay zugeschaltet werden
 - **Cross-Filtering:** Filteränderungen in der Sidebar wirken sich auf alle relevanten Plots aus
 - **Dynamisches Re-Rendering:** Matplotlib-Plots werden bei jeder Filteränderung über `st.pyplot()` neu gerendert
 
@@ -303,7 +300,7 @@ Die Streamlit-App wird auf Streamlit Community Cloud gehostet und ist über eine
 
 ### Optionaler Fahrervergleich
 
-In allen Visualisierungen (ausser dem Stint Chart, das ohnehin alle Fahrer zeigt) kann über einen Sidebar-Filter ein zweiter Fahrer als Vergleich zugeschaltet werden. Dies ist bewusst als optionale Erweiterung konzipiert, nicht als Pflichtansicht. Das Dashboard funktioniert vollständig mit Leclercs eigenen Daten. Die Implementierung wird als separater Arbeitsschritt nach den Kernvisualisierungen eingeplant und kann je nach Zeitbudget in der zweiten Projekthälfte umgesetzt werden.
+In allen Visualisierungen (ausser dem Stint Chart, das ohnehin alle Fahrer zeigt) kann über einen Sidebar-Filter der zweite Ferrari-Fahrer als Vergleich zugeschaltet werden. Dies ist bewusst als optionale Erweiterung konzipiert, nicht als Pflichtansicht. Das Dashboard funktioniert vollständig mit den Daten des primär gewählten Fahrers. Die Implementierung wird als separater Arbeitsschritt nach den Kernvisualisierungen eingeplant und kann je nach Zeitbudget in der zweiten Projekthälfte umgesetzt werden.
 
 ## Project Plan
 
