@@ -1,6 +1,15 @@
 # Mac Stuff
 .DS_Store
 
+# FastF1 cache
+cache/
+
+# IDE
+.idea/
+
+# Playwright test artifacts
+.playwright-mcp/
+
 # Quarto in docs
 docs/.quarto/
 
