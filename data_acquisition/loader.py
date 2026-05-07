@@ -4,9 +4,10 @@ from datetime import datetime
 import pandas as pd
 import fastf1
 
+import tempfile
 
 def setup_cache():
-    cache_dir = Path("cache")
+    cache_dir = Path(tempfile.gettempdir()) / "cache"
     cache_dir.mkdir(exist_ok=True)
     fastf1.Cache.enable_cache(str(cache_dir))
 
