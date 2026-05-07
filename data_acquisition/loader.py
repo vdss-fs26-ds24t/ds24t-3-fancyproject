@@ -26,7 +26,14 @@ def load_race(year: int, gp: str) -> fastf1.core.Session:
 
 
 def get_ferrari_laps(session: fastf1.core.Session) -> pd.DataFrame:
-    laps = session.laps.pick_team("Ferrari").copy()
+    try:
+        all_laps = session.laps
+    except fastf1.exceptions.DataNotLoadedError:
+        raise RuntimeError(
+            "Lap data could not be loaded. The race data may not be available yet "
+            "on the FastF1 servers — try again later or select a different race."
+        )
+    laps = all_laps.pick_team("Ferrari").copy()
     laps = laps[["Driver", "LapNumber", "LapTime", "Compound", "Stint", "TyreLife"]].dropna(subset=["LapTime"])
     laps["LapTimeSec"] = laps["LapTime"].dt.total_seconds()
     return laps.reset_index(drop=True)

@@ -45,7 +45,11 @@ if "race_key" not in st.session_state:
 loaded_year, loaded_gp = st.session_state["race_key"]
 
 with st.spinner(f"Loading {loaded_gp} {loaded_year}..."):
-    laps = fetch_race_data(loaded_year, loaded_gp)
+    try:
+        laps = fetch_race_data(loaded_year, loaded_gp)
+    except Exception as e:
+        st.error(str(e))
+        st.stop()
 
 st.subheader(f"Lap Time Progression — {loaded_gp} {loaded_year}")
 
