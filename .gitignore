@@ -3,8 +3,7 @@
 
 # FastF1 cache
 cache/
-# FastF1 HTTP cache (large SQLite, rebuilt automatically from .ff1pkl files)
-fastf1_cache/*.sqlite
+fastf1_cache/
 
 # IDE
 .idea/
