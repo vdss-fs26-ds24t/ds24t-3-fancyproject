@@ -5,7 +5,7 @@ import pandas as pd
 import fastf1
 
 def setup_cache():
-    cache_dir = Path("/tmp/fastf1_cache")
+    cache_dir = Path(__file__).parent.parent / "fastf1_cache"
     cache_dir.mkdir(exist_ok=True)
     fastf1.Cache.enable_cache(str(cache_dir))
 
