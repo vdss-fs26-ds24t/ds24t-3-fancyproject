@@ -199,7 +199,9 @@ multimethod==1.12
     #   visions
     #   ydata-profiling
 narwhals==2.20.0
-    # via altair
+    # via
+    #   altair
+    #   plotly
 nbclient==0.10.4
     # via nbconvert
 nbconvert==7.17.1
@@ -244,6 +246,7 @@ packaging==26.2
     #   jupyterlab-server
     #   matplotlib
     #   nbconvert
+    #   plotly
     #   statsmodels
     #   streamlit
 pandas==2.3.3
@@ -276,6 +279,8 @@ platformdirs==4.9.6
     #   fastf1
     #   jupyter-core
     #   requests-cache
+plotly==6.7.0
+    # via sample-project (pyproject.toml)
 prometheus-client==0.25.0
     # via jupyter-server
 prompt-toolkit==3.0.52
