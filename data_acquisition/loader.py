@@ -7,7 +7,7 @@ import streamlit as st
 
 
 def setup_cache():
-    cache_dir = Path("cache")
+    cache_dir = Path(__file__).parent.parent / "cache"
     cache_dir.mkdir(exist_ok=True)
     fastf1.Cache.enable_cache(str(cache_dir))
 
@@ -35,7 +35,7 @@ def get_ferrari_laps(year: int, gp: str) -> pd.DataFrame:
     laps = session.laps.pick_team("Ferrari").copy()
     laps = laps[["Driver", "LapNumber", "LapTime", "Compound", "Stint", "TyreLife"]].dropna(subset=["LapTime"])
     laps["LapTimeSec"] = laps["LapTime"].dt.total_seconds()
-    laps["Stint"] = laps["Stint"].astype(int)
+    laps["Stint"] = laps["Stint"].fillna(0).astype(int)
     return laps.reset_index(drop=True)
 
 
@@ -46,7 +46,7 @@ def get_all_laps(year: int, gp: str) -> pd.DataFrame:
     cols = ["Driver", "Team", "LapNumber", "LapTime", "Compound", "Stint", "TyreLife", "Position"]
     laps = laps[cols].dropna(subset=["LapTime"])
     laps["LapTimeSec"] = laps["LapTime"].dt.total_seconds()
-    laps["Stint"] = laps["Stint"].astype(int)
+    laps["Stint"] = laps["Stint"].fillna(0).astype(int)
     return laps.reset_index(drop=True)
 
 
@@ -54,9 +54,9 @@ def get_all_laps(year: int, gp: str) -> pd.DataFrame:
 def get_session_results(year: int, gp: str) -> pd.DataFrame:
     session = _load_session(year, gp, telemetry=False)
     results = session.results[["Abbreviation", "Position", "GridPosition", "Points", "Status"]].copy()
-    results["Position"] = pd.to_numeric(results["Position"], errors="coerce").fillna(20).astype(int)
-    results["GridPosition"] = pd.to_numeric(results["GridPosition"], errors="coerce").fillna(20).astype(int)
-    results["Points"] = pd.to_numeric(results["Points"], errors="coerce").fillna(0).astype(int)
+    results["Position"] = pd.to_numeric(results["Position"], errors="coerce")
+    results["GridPosition"] = pd.to_numeric(results["GridPosition"], errors="coerce")
+    results["Points"] = pd.to_numeric(results["Points"], errors="coerce").fillna(0)
     return results.reset_index(drop=True)
 
 
@@ -65,5 +65,7 @@ def get_telemetry(year: int, gp: str, driver: str, lap_number: int) -> pd.DataFr
     session = _load_session(year, gp, telemetry=True)
     driver_laps = session.laps.pick_driver(driver)
     lap_data = driver_laps[driver_laps["LapNumber"] == lap_number]
-    tel = lap_data.get_telemetry()
+    if lap_data.empty:
+        return pd.DataFrame(columns=["Distance", "Speed", "Throttle", "Brake", "nGear", "X", "Y"])
+    tel = lap_data.iloc[0:1].get_telemetry()
     return tel[["Distance", "Speed", "Throttle", "Brake", "nGear", "X", "Y"]].reset_index(drop=True)
