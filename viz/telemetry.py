@@ -47,7 +47,7 @@ def build_telemetry_chart(
             x=tel["Distance"], y=brake_vals,
             name=label, legendgroup=label, showlegend=False,
             line=dict(color="#e8002d", dash=dash, width=1.5),
-            fill="tozeroy", fillcolor="#e8002d22",
+            fill="tozeroy", fillcolor="rgba(232,0,45,0.13)",
             hovertemplate=f"Lap {lap_num} · Brake: %{{y}}<extra></extra>",
         ), row=3, col=1)
 
