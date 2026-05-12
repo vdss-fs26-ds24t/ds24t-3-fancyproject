@@ -1,10 +1,383 @@
 ---
-title: "Formel 1 Interaktives Rennanalyse Dashboard"
-author: "Gruppe 3"
-format: revealjs
+title: "Interactive Race Analysis Dashboard"
+subtitle: "Formula 1 Post-Race Analysis for Scuderia Ferrari"
+author: "Group 3 — Claudio Calamia, Stefan Hohl, Fynn Fischer"
+format:
+  revealjs:
+    theme: [dark, custom-slides.scss]
+    slide-number: true
+    footer: "VDSS — Ferrari Race Analysis Dashboard"
+    code-fold: true
+    fig-align: center
+    smaller: true
 ---
 
-# This is a test slide
+```{python}
+#| label: setup
+#| echo: false
+#| output: false
+import warnings
+warnings.filterwarnings("ignore")
 
-## I am also a test
+import sys
+from pathlib import Path
 
+project_root = Path.cwd().parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+import fastf1
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.rcParams.update({
+    "figure.facecolor": "#0e1117",
+    "axes.facecolor": "#0e1117",
+    "text.color": "white",
+    "axes.labelcolor": "white",
+    "xtick.color": "white",
+    "ytick.color": "white",
+})
+
+cache_dir = project_root / "cache"
+cache_dir.mkdir(exist_ok=True)
+fastf1.Cache.enable_cache(str(cache_dir))
+
+SAMPLE_YEAR = 2025
+SAMPLE_GP = "Bahrain Grand Prix"
+
+session = fastf1.get_session(SAMPLE_YEAR, SAMPLE_GP, "R")
+session.load(telemetry=True, weather=False, messages=False)
+```
+
+
+# Why?
+
+## The Problem
+
+**After every race, teams need answers — fast.**
+
+- Which strategy worked? Which didn't?
+- Where on track did we lose time?
+- How did tyre degradation affect pace?
+- How did our drivers compare to the competition?
+
+. . .
+
+**Today's reality:** Engineers juggle raw CSV exports, separate timing screens, and static broadcast graphics — stitching together a picture manually.
+
+## What We Built
+
+A **single interactive dashboard** that brings together:
+
+- Race strategy overview (all 20 drivers)
+- Lap time progression with degradation trendlines
+- High-frequency telemetry comparison (driver vs. driver)
+- Track map coloured by speed, throttle, brake, or gear
+
+. . .
+
+All powered by **one click** — select a season and Grand Prix, and the dashboard loads everything.
+
+
+# For Whom?
+
+## Persona: Marco, 34 — Race Strategy Engineer {.smaller}
+
+:::: {.columns}
+::: {.column width="60%"}
+- Works at an F1 midfield team
+- Creates post-race reports every Monday
+- Compares his team's strategy with competitors
+- **Expert-level** domain knowledge and data literacy
+- Uses desktop with large monitor
+
+> *"I don't want to search through five tables. Show me on the map where we lost time."*
+:::
+::: {.column width="40%"}
+**Jobs:**
+
+- Analyse competitor strategies
+- Compare degradation curves
+- Evaluate telemetry by track section
+
+**Pains:**
+
+- Static TV graphics aren't enough
+- Raw data from multiple sources
+- Too much data, no structure
+:::
+::::
+
+## Persona: Giulia, 28 — F1 Data Journalist {.smaller}
+
+:::: {.columns}
+::: {.column width="60%"}
+- Writes data-driven articles for an online sports magazine
+- Understands race strategy basics, but not raw data
+- **Medium** domain knowledge and data literacy
+- Works on laptop, needs screenshot-ready visuals
+
+> *"I need the one chart that shows why Ferrari won — and that my readers understand immediately."*
+:::
+::: {.column width="40%"}
+**Jobs:**
+
+- Find key moments visually
+- Create graphics for articles
+
+**Pains:**
+
+- Too technical without context
+- No time for complex filter logic
+- Missing labels and legends
+:::
+::::
+
+
+# Data Source
+
+## FastF1 — The Data Behind F1
+
+:::: {.columns}
+::: {.column width="50%"}
+**What is it?**
+
+Open-source Python library (MIT licence) that wraps the official F1 timing data APIs.
+
+**What does it provide?**
+
+- Lap-by-lap timing for all 20 drivers
+- Tyre compound and stint information
+- High-frequency car telemetry (~240 Hz)
+- GPS track coordinates (X, Y, Z)
+- Race results and classifications
+:::
+::: {.column width="50%"}
+**Data scale per race:**
+
+| Level | Observations |
+|---|---|
+| Laps | ~1,000+ |
+| Telemetry | ~100,000+ |
+| Results | 20 |
+
+**Key features:** 15+ variables — mix of numerical (speed, throttle, lap time) and categorical (compound, driver, team)
+:::
+::::
+
+
+# Exploratory Data Analysis
+
+## Data Quality — Missing Values
+
+```{python}
+#| label: fig-eda-missing
+#| fig-cap: "Missing value fractions in the laps dataset (2025 Bahrain GP)."
+#| echo: false
+laps_full = session.laps.copy()
+for col in ["LapTime", "Sector1Time", "Sector2Time", "Sector3Time"]:
+    if col in laps_full.columns:
+        laps_full[f"{col}Sec"] = laps_full[col].dt.total_seconds()
+
+analysis_cols = [
+    "LapTimeSec", "Sector1TimeSec", "Sector2TimeSec", "Sector3TimeSec",
+    "SpeedFL", "SpeedST", "TyreLife", "Position", "Compound"
+]
+available_cols = [c for c in analysis_cols if c in laps_full.columns]
+missing_frac = laps_full[available_cols].isnull().mean().sort_values(ascending=False)
+
+fig, ax = plt.subplots(figsize=(8, 3.5))
+colors = ["#e8002d" if v > 0.05 else "#4C78A8" for v in missing_frac.values]
+missing_frac.plot.barh(ax=ax, color=colors)
+ax.set_xlabel("Fraction missing")
+ax.axvline(x=0.05, color="grey", linestyle="--", linewidth=0.8, label="5% threshold")
+ax.legend(facecolor="#0e1117", edgecolor="#333")
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+plt.tight_layout()
+plt.show()
+```
+
+**Implication:** `.dropna(subset=["LapTime"])` removes in-laps and out-laps — these are genuinely incomplete, not errors.
+
+
+## Correlations — Telemetry Channels
+
+```{python}
+#| label: fig-eda-corr
+#| fig-cap: "Spearman correlation between telemetry variables."
+#| echo: false
+import seaborn as sns
+
+fastest_lap = session.laps.pick_fastest()
+tel = fastest_lap.get_telemetry()
+
+tel_numeric = tel[["Speed", "Throttle", "Brake", "nGear", "RPM"]].copy()
+tel_numeric["Brake"] = tel_numeric["Brake"].astype(float)
+tel_corr = tel_numeric.corr(method="spearman")
+
+fig, ax = plt.subplots(figsize=(5, 4))
+sns.heatmap(tel_corr, annot=True, fmt=".2f", cmap="RdBu_r", center=0,
+            square=True, ax=ax, linewidths=0.5,
+            cbar_kws={"shrink": 0.8})
+ax.set_title("Spearman Correlation", color="white", fontsize=11)
+plt.tight_layout()
+plt.show()
+```
+
+Speed-Throttle and Speed-Gear strongly correlated. 
+
+
+# The Dashboard
+
+## Home Page — Overview at a Glance
+
+:::: {.columns}
+::: {.column width="50%"}
+**KPI Cards:**
+
+- Finishing position per Ferrari driver
+- Grid position delta (gained/lost)
+- Best lap time
+- Total points scored
+
+**Strategy Thumbnail:**
+
+- Compact stint chart for quick context
+- Links naturally to the detailed Strategy page
+:::
+::: {.column width="50%"}
+**Why these elements?**
+
+- Addresses Giulia's need for an **entry point** — not raw data
+- Gives Marco the **executive summary** before diving deeper
+- KPI cards provide instant orientation: "How did Ferrari do?"
+:::
+::::
+
+## Strategy Page — Who Did What?
+
+:::: {.columns}
+::: {.column width="55%"}
+**Position Chart** (line chart)
+
+- All 20 drivers, Ferrari highlighted in red
+- Y-axis inverted (P1 at top)
+- Hover reveals exact position per lap
+
+**Stint Chart** (horizontal stacked bar)
+
+- Colour = tyre compound (red/yellow/white)
+- Ferrari bordered in red
+- Ordered by finishing position
+:::
+::: {.column width="45%"}
+**Why these charts?**
+
+- **Position chart:** Bump chart is the standard for position changes over time — immediately shows overtakes and strategy effects
+- **Stint chart:** Horizontal bars map intuitively to the time axis of a race; compound colours are F1 conventions that need no legend explanation
+- Both address Marco's need to *"compare competitor strategies"*
+:::
+::::
+
+## Lap Times Page — Degradation Analysis
+
+:::: {.columns}
+::: {.column width="55%"}
+**Line chart** with:
+
+- Lap time per lap, colour-coded by compound
+- Dashed **trendlines** per stint (linear regression)
+- PIT markers at stop boundaries
+- Optional competitor overlay (grey)
+
+**Filters:**
+
+- Stint selector (multiselect)
+- Hide SC / outlier laps toggle (>107% median)
+- Competitor comparison dropdown
+:::
+::: {.column width="45%"}
+**Why a line chart?**
+
+- Lap times are a **time series** — line charts show trends naturally
+- Per-stint trendlines make **degradation rate** quantifiable at a glance
+- EDA confirmed the tyre life vs. lap time relationship
+- Outlier filtering prevents SC laps from distorting the y-axis scale
+- Competitor overlay enables **relative** performance comparison
+:::
+::::
+
+## Telemetry Page — Driver vs. Driver
+
+:::: {.columns}
+::: {.column width="55%"}
+**3-row subplot layout:**
+
+1. Speed (km/h) over distance
+2. Throttle (%) over distance
+3. Brake (on/off) over distance
+
+- **Shared x-axis** (distance in meters)
+- Driver A in red, Driver B in blue
+- Defaults to fastest lap per driver
+:::
+::: {.column width="45%"}
+**Why this layout?**
+
+- **Subplots with shared x-axis** let the eye move vertically to link cause and effect: *"Driver A brakes later → carries more speed → higher throttle on exit"*
+- Distance (not time) as x-axis ensures spatial alignment on track
+- Red vs. blue is the most accessible colour contrast
+- This is the **established format** in motorsport telemetry analysis — Marco recognises it instantly
+:::
+::::
+
+## Track Map — Where on Track?
+
+:::: {.columns}
+::: {.column width="55%"}
+**Circuit outline** from GPS coordinates (X, Y), coloured by:
+
+- Speed (RdYlGn colorscale)
+- Throttle (RdYlGn)
+- Brake (RdYlGn reversed)
+- Gear (Viridis)
+
+**Controls:**
+
+- Driver selector
+- Lap slider
+- Colour-by radio buttons
+:::
+::: {.column width="45%"}
+**Why a track map?**
+
+- Answers Marco's core question: *"Where on the map did we lose time?"*
+- Spatial encoding makes patterns **immediately visible** that are hidden in tabular data
+- Colour gradient on the track outline is a compact way to overlay one variable on the circuit shape
+- **Viridis** for gears (ordinal, sequential) — **RdYlGn** for speed (diverging, fast=green)
+:::
+::::
+
+## Design Decisions — Summary {.smaller}
+
+| Decision | Rationale |
+|---|---|
+| **Plotly** instead of Matplotlib | Interactive hover, zoom, pan — essential for telemetry exploration |
+| **Dark theme** (#0e1117) | Reduces eye strain during long analysis sessions; matches F1 broadcast aesthetics |
+| **Ferrari red** (#e8002d) as primary accent | Immediate brand recognition; Ferrari data stands out from the field |
+| **Compound colours** (red/yellow/white) | Leverages established F1 conventions — no learning curve |
+| **Background telemetry preloading** | ~30s initial load would frustrate users; thread warms cache on race selection |
+| **Distance-based x-axis** (telemetry) | Spatial alignment over time alignment — enables track section comparison |
+| **107% median threshold** (outliers) | Standard F1 threshold adapted for outlier filtering to improve readability of charts|
+
+
+# Thank You {.center}
+
+**Ferrari Race Analysis Dashboard**
+
+Claudio Calamia, Stefan Hohl, Fynn Fischer
+
+ZHAW — VDSS Project

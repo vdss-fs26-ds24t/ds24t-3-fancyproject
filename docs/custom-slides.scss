@@ -1,0 +1,38 @@
+/*-- scss:defaults --*/
+$body-bg: #0e1117;
+$body-color: #f0f0f0;
+$link-color: #e8002d;
+$code-block-bg: #1a1d23;
+
+/*-- scss:rules --*/
+.reveal h1, .reveal h2, .reveal h3 {
+  color: #e8002d;
+}
+
+.reveal .slide-number {
+  color: #888;
+}
+
+.reveal table {
+  font-size: 0.7em;
+}
+
+.reveal table th {
+  background-color: #1a1d23;
+  color: #e8002d;
+}
+
+.reveal table td {
+  background-color: #12141f;
+}
+
+.reveal blockquote {
+  border-left: 4px solid #e8002d;
+  background-color: #1a1d23;
+  padding: 0.5em 1em;
+  font-style: italic;
+}
+
+.reveal .footer {
+  color: #666;
+}
