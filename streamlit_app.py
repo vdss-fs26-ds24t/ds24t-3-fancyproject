@@ -12,11 +12,11 @@ setup_cache()
 st.set_page_config(page_title="Ferrari Race Analysis", layout="wide")
 
 pg = st.navigation([
-    st.Page(_home.show, title="Home", icon="🏠", default=True),
-    st.Page(_strategy.show, title="Strategy", icon="📊"),
-    st.Page(_lap_times.show, title="Lap Times", icon="📈"),
-    st.Page(_telemetry.show, title="Telemetry", icon="🎮"),
-    st.Page(_track_map.show, title="Track Map", icon="🗺️"),
+    st.Page(_home.show, title="Home", icon="🏠", default=True, url_path="home"),
+    st.Page(_strategy.show, title="Strategy", icon="📊", url_path="strategy"),
+    st.Page(_lap_times.show, title="Lap Times", icon="📈", url_path="lap-times"),
+    st.Page(_telemetry.show, title="Telemetry", icon="🎮", url_path="telemetry"),
+    st.Page(_track_map.show, title="Track Map", icon="🗺️", url_path="track-map"),
 ])
 
 with st.sidebar:

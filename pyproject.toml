@@ -15,3 +15,9 @@ dependencies = [
     "streamlit>=1.56.0",
     "ydata-profiling>=4.12.2",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-playwright>=0.6.0",
+]
