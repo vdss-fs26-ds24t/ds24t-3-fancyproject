@@ -13,6 +13,7 @@ fastf1_cache/
 
 # Quarto in docs
 docs/.quarto/
+docs/_freeze/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

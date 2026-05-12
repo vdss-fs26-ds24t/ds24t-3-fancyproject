@@ -1,0 +1,10 @@
+---
+title: "Formel 1 Interaktives Rennanalyse Dashboard"
+author: "Gruppe 3"
+format: revealjs
+---
+
+# This is a test slide
+
+## I am also a test
+
