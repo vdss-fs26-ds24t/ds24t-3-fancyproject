@@ -146,4 +146,5 @@ dmypy.json
 **/*.quarto_ipynb
 
 .claude/
+CLAUDE.md
 
