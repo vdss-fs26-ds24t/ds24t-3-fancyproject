@@ -1,8 +1,45 @@
+import pandas as pd
 import streamlit as st
 
 from data_acquisition.loader import get_ferrari_laps, get_all_laps, get_session_results
 from viz.strategy import build_stint_chart
 from viz.lap_times import format_laptime
+
+
+def _driver_narrative(ferrari_laps: pd.DataFrame, results: pd.DataFrame, driver: str) -> str:
+    driver_laps = ferrari_laps[ferrari_laps["Driver"] == driver].dropna(subset=["LapTimeSec"])
+    if driver_laps.empty:
+        return f"**{driver}**: no data"
+
+    stints = (
+        driver_laps.sort_values("LapNumber")
+        .groupby("Stint", sort=True)["Compound"]
+        .first()
+        .str.capitalize()
+        .tolist()
+    )
+    num_stops = len(stints) - 1
+    strategy_str = " → ".join(stints)
+
+    driver_result = results[results["Abbreviation"] == driver]
+    if driver_result.empty:
+        return f"**{driver}**: {num_stops}-stop ({strategy_str})"
+
+    pos = driver_result["Position"].iloc[0]
+    grid = driver_result["GridPosition"].iloc[0]
+
+    if pd.isna(pos):
+        return f"**{driver}**: {num_stops}-stop ({strategy_str}) — DNF"
+
+    pos_int, grid_int = int(pos), int(grid)
+    gained = grid_int - pos_int
+    if gained > 0:
+        move = f", gained {gained} position{'s' if gained != 1 else ''}"
+    elif gained < 0:
+        move = f", lost {abs(gained)} position{'s' if abs(gained) != 1 else ''}"
+    else:
+        move = ""
+    return f"**{driver}**: {num_stops}-stop ({strategy_str}), P{grid_int} → P{pos_int}{move}"
 
 
 def show():
@@ -21,14 +58,14 @@ def show():
 
     st.title(f"{gp} {year}")
 
+    # KPI cards
     cols = st.columns(4)
-
     for i, driver in enumerate(ferrari_drivers[:2]):
         driver_result = results[results["Abbreviation"] == driver]
         if not driver_result.empty:
             pos = driver_result["Position"].iloc[0]
             grid = driver_result["GridPosition"].iloc[0]
-            if pos == pos and grid == grid:  # not NaN
+            if pos == pos and grid == grid:
                 pos_int = int(pos)
                 grid_int = int(grid)
                 gained = grid_int - pos_int
@@ -53,6 +90,11 @@ def show():
     with cols[3]:
         st.metric(label="Points Scored", value=total_pts, delta="combined")
 
+    # Race narrative
+    narratives = [_driver_narrative(ferrari_laps, results, d) for d in ferrari_drivers]
+    st.caption("  ·  ".join(narratives))
+
+    # Strategy thumbnail
     st.subheader("Race Strategy")
-    fig = build_stint_chart(all_laps, ferrari_drivers, height=250)
+    fig = build_stint_chart(all_laps, ferrari_drivers, height=260)
     st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True})

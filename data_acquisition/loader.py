@@ -66,6 +66,20 @@ def get_telemetry(year: int, gp: str, driver: str, lap_number: int) -> pd.DataFr
     driver_laps = session.laps.pick_driver(driver)
     lap_data = driver_laps[driver_laps["LapNumber"] == lap_number]
     if lap_data.empty:
-        return pd.DataFrame(columns=["Distance", "Speed", "Throttle", "Brake", "nGear", "X", "Y"])
+        return pd.DataFrame(columns=["Distance", "Speed", "Throttle", "Brake", "Gear", "X", "Y"])
     tel = lap_data.iloc[0:1].get_telemetry()
-    return tel[["Distance", "Speed", "Throttle", "Brake", "nGear", "X", "Y"]].reset_index(drop=True)
+    tel = tel[["Distance", "Speed", "Throttle", "Brake", "nGear", "X", "Y"]].copy()
+    tel = tel.rename(columns={"nGear": "Gear"})
+    tel["Brake"] = tel["Brake"].astype(float)
+    return tel.reset_index(drop=True)
+
+
+def preload_telemetry(year: int, gp: str) -> None:
+    """Start background thread to warm the telemetry session cache."""
+    import threading
+    def _load():
+        try:
+            _load_session(year, gp, telemetry=True)
+        except Exception:
+            pass
+    threading.Thread(target=_load, daemon=True).start()

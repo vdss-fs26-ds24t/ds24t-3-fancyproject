@@ -22,6 +22,7 @@ def build_lap_chart(
     laps: pd.DataFrame,
     show_stints: list | None = None,
     hide_outliers: bool = True,
+    competitor_laps: pd.DataFrame | None = None,
 ) -> go.Figure:
     fig = go.Figure()
     drivers = laps["Driver"].unique().tolist()
@@ -72,8 +73,8 @@ def build_lap_chart(
                     x=x_vals,
                     y=p(x_vals),
                     mode="lines",
-                    line=dict(color=color, width=1, dash="dot"),
-                    opacity=0.35,
+                    line=dict(color=color, width=1.5, dash="dot"),
+                    opacity=0.5,
                     showlegend=False,
                     hoverinfo="skip",
                 ))
@@ -97,9 +98,48 @@ def build_lap_chart(
                 ),
             ))
 
-    if not filtered.empty:
-        min_t = filtered["LapTimeSec"].min()
-        max_t = filtered["LapTimeSec"].max()
+    # Competitor overlay — muted gray, no trendline
+    if competitor_laps is not None and not competitor_laps.empty:
+        comp = competitor_laps.copy()
+        if hide_outliers:
+            median_c = comp["LapTimeSec"].median()
+            comp = comp[comp["LapTimeSec"] <= median_c * 1.07]
+
+        comp_driver = str(comp["Driver"].iloc[0]) if not comp.empty else "Competitor"
+        stints_c = sorted(comp["Stint"].dropna().unique())
+
+        for stint_num in stints_c:
+            stint_laps = comp[comp["Stint"] == stint_num].sort_values("LapNumber")
+            if stint_laps.empty:
+                continue
+            compound = str(stint_laps["Compound"].iloc[0])
+            custom = list(zip(
+                stint_laps["TyreLife"].values,
+                [format_laptime(t) for t in stint_laps["LapTimeSec"].values],
+            ))
+            fig.add_trace(go.Scatter(
+                x=stint_laps["LapNumber"],
+                y=stint_laps["LapTimeSec"],
+                mode="lines+markers",
+                name=f"{comp_driver} S{stint_num} ({compound.capitalize()})",
+                line=dict(color="#888888", width=1.5, dash="dot"),
+                marker=dict(size=3, color="#888888"),
+                opacity=0.7,
+                customdata=custom,
+                hovertemplate=(
+                    f"<b>{comp_driver}</b> · Lap %{{x}}<br>"
+                    f"{compound.capitalize()} (age: %{{customdata[0]:.0f}} laps)<br>"
+                    f"Time: %{{customdata[1]}}<extra></extra>"
+                ),
+            ))
+
+    all_times = filtered["LapTimeSec"].tolist()
+    if competitor_laps is not None and not competitor_laps.empty:
+        all_times += competitor_laps["LapTimeSec"].dropna().tolist()
+
+    if all_times:
+        min_t = min(all_times)
+        max_t = max(all_times)
         tick_vals = np.arange(int(min_t) - 2, int(max_t) + 4, 2).tolist()
         tick_text = [format_laptime(t) for t in tick_vals]
     else:

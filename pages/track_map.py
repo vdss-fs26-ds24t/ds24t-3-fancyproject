@@ -16,16 +16,21 @@ def show():
 
     ferrari_drivers = laps["Driver"].unique().tolist()
 
-    with st.sidebar:
-        st.markdown("---")
-        st.markdown("**Track Map Controls**")
-        driver = st.selectbox("Driver", ferrari_drivers, key="tm_driver")
-        driver_lap_nums = sorted(laps[laps["Driver"] == driver]["LapNumber"].astype(int).tolist())
-        mid = len(driver_lap_nums) // 2
-        lap_num = st.select_slider("Lap", options=driver_lap_nums, value=driver_lap_nums[mid], key="tm_lap")
-        color_by = st.radio("Colour by", ["Speed", "Throttle", "Brake", "Gear"], key="tm_color")
+    st.subheader(f"Track Map — {gp} {year}")
 
-    st.subheader(f"Track Map — {driver} · Lap {lap_num} · {gp} {year}")
+    # Driver selector first; lap list depends on selected driver
+    col1, col2, col3 = st.columns([1, 2, 2])
+    with col1:
+        driver = st.selectbox("Driver", ferrari_drivers, key="tm_driver")
+
+    driver_lap_nums = sorted(laps[laps["Driver"] == driver]["LapNumber"].astype(int).tolist())
+    mid = len(driver_lap_nums) // 2
+
+    with col2:
+        lap_num = st.select_slider("Lap", options=driver_lap_nums, value=driver_lap_nums[mid], key="tm_lap")
+    with col3:
+        color_by = st.radio("Colour by", ["Speed", "Throttle", "Brake", "Gear"], key="tm_color", horizontal=True)
+
     st.caption(f"Coloured by {color_by} · Hover for exact values · First load may take ~30 s")
 
     with st.spinner(f"Loading telemetry for {driver} lap {lap_num}…"):

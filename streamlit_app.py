@@ -1,6 +1,6 @@
 import streamlit as st
 
-from data_acquisition.loader import setup_cache, get_event_schedule
+from data_acquisition.loader import setup_cache, get_event_schedule, preload_telemetry
 import pages.home as _home
 import pages.strategy as _strategy
 import pages.lap_times as _lap_times
@@ -27,6 +27,7 @@ with st.sidebar:
     gp = st.selectbox("Grand Prix", gp_names, index=len(gp_names) - 1)
     if st.button("Load Race", type="primary", use_container_width=True):
         st.session_state["race_key"] = (year, gp)
+        preload_telemetry(year, gp)
     if "race_key" in st.session_state:
         loaded_year, loaded_gp = st.session_state["race_key"]
         st.caption(f"Loaded: {loaded_gp} {loaded_year}")
