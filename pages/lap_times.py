@@ -35,18 +35,16 @@ def show():
             key="lt_competitor",
         )
 
-    caption = "Dashed trendlines show degradation rate per stint · PIT = pit stop lap"
+    caption = "Tyre strategy shown as coloured strip below chart · S1/S2 = stint number · PIT = pit stop"
     if compare_with != "None":
-        caption += f" · {compare_with} shown in grey for comparison"
+        caption += f" · {compare_with} shown as dashed grey reference line"
     st.caption(caption)
 
     competitor_laps = None
     if compare_with != "None":
-        comp_raw = all_laps[all_laps["Driver"] == compare_with].copy()
-        if hide_outliers:
-            median_c = comp_raw["LapTimeSec"].median()
-            comp_raw = comp_raw[comp_raw["LapTimeSec"] <= median_c * 1.07]
-        competitor_laps = comp_raw
+        # Pass raw data — build_lap_chart filters for the line internally
+        # but uses all stints for the strategy strip
+        competitor_laps = all_laps[all_laps["Driver"] == compare_with].copy()
 
     fig = build_lap_chart(
         laps,
