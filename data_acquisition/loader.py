@@ -33,7 +33,8 @@ def _load_session(year: int, gp: str, telemetry: bool = False) -> fastf1.core.Se
 def get_ferrari_laps(year: int, gp: str) -> pd.DataFrame:
     session = _load_session(year, gp, telemetry=False)
     laps = session.laps.pick_team("Ferrari").copy()
-    laps = laps[["Driver", "LapNumber", "LapTime", "Compound", "Stint", "TyreLife"]].dropna(subset=["LapTime"])
+    laps = laps[["Driver", "LapNumber", "LapTime", "Compound", "Stint", "TyreLife",
+                  "Position", "PitInTime", "PitOutTime"]].dropna(subset=["LapTime"])
     laps["LapTimeSec"] = laps["LapTime"].dt.total_seconds()
     laps["Stint"] = laps["Stint"].fillna(0).astype(int)
     return laps.reset_index(drop=True)
@@ -43,11 +44,23 @@ def get_ferrari_laps(year: int, gp: str) -> pd.DataFrame:
 def get_all_laps(year: int, gp: str) -> pd.DataFrame:
     session = _load_session(year, gp, telemetry=False)
     laps = session.laps.copy()
-    cols = ["Driver", "Team", "LapNumber", "LapTime", "Compound", "Stint", "TyreLife", "Position"]
+    cols = ["Driver", "Team", "LapNumber", "LapTime", "Compound", "Stint", "TyreLife", "Position", "PitInTime", "PitOutTime", "TrackStatus"]
     laps = laps[cols].dropna(subset=["LapTime"])
     laps["LapTimeSec"] = laps["LapTime"].dt.total_seconds()
     laps["Stint"] = laps["Stint"].fillna(0).astype(int)
     return laps.reset_index(drop=True)
+
+
+@st.cache_data(show_spinner=False)
+def get_track_status(year: int, gp: str) -> pd.DataFrame:
+    session = _load_session(year, gp, telemetry=False)
+    try:
+        ts = session.track_status
+        if ts is None or ts.empty:
+            return pd.DataFrame(columns=["Time", "Status", "Message"])
+        return ts.reset_index(drop=True)
+    except Exception:
+        return pd.DataFrame(columns=["Time", "Status", "Message"])
 
 
 @st.cache_data(show_spinner=False)
@@ -72,6 +85,15 @@ def get_telemetry(year: int, gp: str, driver: str, lap_number: int) -> pd.DataFr
     tel = tel.rename(columns={"nGear": "Gear"})
     tel["Brake"] = tel["Brake"].astype(float)
     return tel.reset_index(drop=True)
+
+
+@st.cache_data(show_spinner=False)
+def get_circuit_rotation(year: int, gp: str) -> float:
+    session = _load_session(year, gp, telemetry=False)
+    try:
+        return float(session.get_circuit_info().rotation)
+    except Exception:
+        return 0.0
 
 
 def preload_telemetry(year: int, gp: str) -> None:

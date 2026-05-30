@@ -1,3 +1,4 @@
+import numpy as np
 import plotly.graph_objects as go
 from plotly.colors import sample_colorscale
 import pandas as pd
@@ -14,7 +15,17 @@ _STEP = 15
 _OVERLAP = 2
 
 
-def build_track_map(tel: pd.DataFrame, color_by: str = "Speed") -> go.Figure:
+def build_track_map(tel: pd.DataFrame, color_by: str = "Speed", rotation: float = 0.0) -> go.Figure:
+    # Apply rotation to X,Y coordinates
+    if rotation != 0.0:
+        rad = np.radians(rotation)
+        cos_r, sin_r = np.cos(rad), np.sin(rad)
+        x_arr = tel["X"].values.astype(float)
+        y_arr = tel["Y"].values.astype(float)
+        tel = tel.copy()
+        tel["X"] = x_arr * cos_r - y_arr * sin_r
+        tel["Y"] = x_arr * sin_r + y_arr * cos_r
+
     col = color_by
     colorscale = _COLORSCALES.get(col, "RdYlGn")
     unit = _UNITS.get(col, "")
@@ -68,15 +79,20 @@ def build_track_map(tel: pd.DataFrame, color_by: str = "Speed") -> go.Figure:
         showlegend=False,
     ))
 
-    pad = 300
+    pad = 150
     x_range = [tel["X"].min() - pad, tel["X"].max() + pad]
     y_range = [tel["Y"].min() - pad, tel["Y"].max() + pad]
+
+    x_span = tel["X"].max() - tel["X"].min()
+    y_span = tel["Y"].max() - tel["Y"].min()
+    aspect = y_span / max(x_span, 1)
+    chart_height = int(max(350, min(700, 650 * aspect)))
 
     fig.update_layout(
         paper_bgcolor="#0e1117",
         plot_bgcolor="#0e1117",
         font=dict(color="#ffffff"),
-        height=580,
+        height=chart_height,
         margin=dict(l=10, r=80, t=10, b=10),
         xaxis=dict(visible=False, scaleanchor="y", scaleratio=1, range=x_range),
         yaxis=dict(visible=False, range=y_range),

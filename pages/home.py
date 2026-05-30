@@ -96,5 +96,5 @@ def show():
 
     # Strategy thumbnail
     st.subheader("Race Strategy")
-    fig = build_stint_chart(all_laps, ferrari_drivers, height=260)
+    fig = build_stint_chart(all_laps, ferrari_drivers)
     st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True})

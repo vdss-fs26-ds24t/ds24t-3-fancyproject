@@ -119,7 +119,7 @@ def build_lap_chart(
     if hide_outliers:
         median_time = filtered.groupby("Driver")["LapTimeSec"].transform("median")
         filtered = filtered[filtered["LapTimeSec"] <= median_time * 1.07]
-    if show_stints:
+    if show_stints is not None:
         filtered = filtered[filtered["Stint"].isin(show_stints)]
 
     # Pit stop lines — span both rows, based on filtered Ferrari laps
@@ -145,17 +145,47 @@ def build_lap_chart(
                     annotation_position="top",
                 )
 
-    # Ferrari lines (row 1)
+    # Invisible header trace — first entry in unified hover shows "Lap X" prominently
+    if not filtered.empty:
+        all_lx = sorted(filtered["LapNumber"].unique().tolist())
+        _med_y = filtered["LapTimeSec"].median()
+        fig.add_trace(go.Scatter(
+            x=all_lx,
+            y=[_med_y] * len(all_lx),
+            mode="markers",
+            marker=dict(size=0, opacity=0),
+            showlegend=False,
+            hovertemplate="<b>Lap %{x:.0f}</b><extra></extra>",
+            name="",
+        ), row=1, col=1)
+
+    # Ferrari lines + per-stint degradation trendlines (row 1)
     for i, driver in enumerate(drivers):
         d_laps = filtered[filtered["Driver"] == driver].sort_values("LapNumber")
         if d_laps.empty:
             continue
         line_color = _FERRARI_LINE_COLORS[i % len(_FERRARI_LINE_COLORS)]
+
+        # Pre-compute slopes so they appear in hover and trendline traces
+        stint_trends: dict = {}
+        for stint_num in sorted(d_laps["Stint"].unique()):
+            s = d_laps[d_laps["Stint"] == stint_num]
+            if len(s) >= 4:
+                xv = s["LapNumber"].values.astype(float)
+                yv = s["LapTimeSec"].values
+                sl, ic = np.polyfit(xv, yv, 1)
+                stint_trends[int(stint_num)] = (float(sl), float(ic))
+
+        slope_strs = [
+            (f"{stint_trends[int(s)][0]:+.3f} s/lap" if int(s) in stint_trends else "—")
+            for s in d_laps["Stint"].values
+        ]
         custom = list(zip(
             d_laps["Stint"].values,
             d_laps["Compound"].fillna("?").values,
             d_laps["TyreLife"].values,
             [format_laptime(t) for t in d_laps["LapTimeSec"].values],
+            slope_strs,
         ))
         fig.add_trace(go.Scatter(
             x=d_laps["LapNumber"],
@@ -165,40 +195,82 @@ def build_lap_chart(
             line=dict(color=line_color, width=2.5),
             customdata=custom,
             hovertemplate=(
-                f"<b>{driver}</b> · Lap %{{x}}<br>"
-                "Stint %{customdata[0]} · %{customdata[1]} "
-                "(age: %{customdata[2]:.0f} laps)<br>"
-                "Time: %{customdata[3]}<extra></extra>"
+                f"<b>{driver}</b>  %{{customdata[3]}}<br>"
+                "S%{customdata[0]} · %{customdata[1]} · %{customdata[2]:.0f} laps<br>"
+                "Trend: %{customdata[4]}<extra></extra>"
             ),
         ), row=1, col=1)
 
-    # Competitor (row 1) — light blue dashed; outlier filter for line only
+        # Trendlines using pre-computed slopes
+        for stint_num, (slope, intercept) in stint_trends.items():
+            s = d_laps[d_laps["Stint"] == stint_num]
+            x_v = s["LapNumber"].values.astype(float)
+            fig.add_trace(go.Scatter(
+                x=x_v,
+                y=slope * x_v + intercept,
+                mode="lines",
+                line=dict(color=line_color, width=1.5, dash="dot"),
+                opacity=0.5,
+                showlegend=False,
+                hoverinfo="skip",
+            ), row=1, col=1)
+
+    # Competitor (row 1) — light blue; outlier filter for line only
     if has_competitor:
         comp = competitor_laps.copy().sort_values("LapNumber")
         if hide_outliers:
             median_c = comp["LapTimeSec"].median()
             comp = comp[comp["LapTimeSec"] <= median_c * 1.07]
         comp_driver = str(competitor_laps["Driver"].iloc[0])
+
+        # Pre-compute competitor slopes
+        comp_trends: dict = {}
+        for stint_num in sorted(comp["Stint"].unique()):
+            cs = comp[comp["Stint"] == stint_num]
+            if len(cs) >= 4:
+                xv = cs["LapNumber"].values.astype(float)
+                yv = cs["LapTimeSec"].values
+                sl, ic = np.polyfit(xv, yv, 1)
+                comp_trends[int(stint_num)] = (float(sl), float(ic))
+
+        comp_slope_strs = [
+            (f"{comp_trends[int(s)][0]:+.3f} s/lap" if int(s) in comp_trends else "—")
+            for s in comp["Stint"].values
+        ]
         custom_c = list(zip(
             comp["Stint"].values,
             comp["Compound"].fillna("?").values,
             comp["TyreLife"].values,
             [format_laptime(t) for t in comp["LapTimeSec"].values],
+            comp_slope_strs,
         ))
         fig.add_trace(go.Scatter(
             x=comp["LapNumber"],
             y=comp["LapTimeSec"],
             mode="lines",
             name=comp_driver,
-            line=dict(color=_COMPETITOR_COLOR, width=1.5, dash="dash"),
+            line=dict(color=_COMPETITOR_COLOR, width=1.5),
             customdata=custom_c,
             hovertemplate=(
-                f"<b>{comp_driver}</b> · Lap %{{x}}<br>"
-                "Stint %{customdata[0]} · %{customdata[1]} "
-                "(age: %{customdata[2]:.0f} laps)<br>"
-                "Time: %{customdata[3]}<extra></extra>"
+                f"<b>{comp_driver}</b>  %{{customdata[3]}}<br>"
+                "S%{customdata[0]} · %{customdata[1]} · %{customdata[2]:.0f} laps<br>"
+                "Trend: %{customdata[4]}<extra></extra>"
             ),
         ), row=1, col=1)
+
+        # Competitor trendlines
+        for stint_num, (slope, intercept) in comp_trends.items():
+            cs = comp[comp["Stint"] == stint_num]
+            x_v = cs["LapNumber"].values.astype(float)
+            fig.add_trace(go.Scatter(
+                x=x_v,
+                y=slope * x_v + intercept,
+                mode="lines",
+                line=dict(color=_COMPETITOR_COLOR, width=1.5, dash="dot"),
+                opacity=0.5,
+                showlegend=False,
+                hoverinfo="skip",
+            ), row=1, col=1)
 
     # Compound strips (row 2) — always use raw unfiltered laps, never outlier-filter
     compounds_in_data: set = set()
@@ -221,6 +293,14 @@ def build_lap_chart(
         y_mid = _draw_strip(fig, competitor_laps.copy(), 0, compounds_in_data)
         y_tick_vals.append(y_mid)
         y_tick_text.append(comp_driver)
+
+    # Trendline legend entry (explains dotted lines in chart)
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None], mode="lines",
+        name="Stint trend (s/lap)",
+        line=dict(color="#888888", width=1.5, dash="dot"),
+        showlegend=True,
+    ), row=1, col=1)
 
     # Compound legend chips
     for compound in ["SOFT", "MEDIUM", "HARD", "INTERMEDIATE", "WET"]:
@@ -249,8 +329,8 @@ def build_lap_chart(
     else:
         tick_vals, tick_text = [], []
 
-    fig.update_xaxes(gridcolor="#222222", zeroline=False, row=1, col=1)
-    fig.update_xaxes(title_text="Lap", gridcolor="#222222", zeroline=False, row=2, col=1)
+    fig.update_xaxes(gridcolor="#222222", zeroline=False, showspikes=False, row=1, col=1)
+    fig.update_xaxes(title_text="Lap", gridcolor="#222222", zeroline=False, showspikes=False, row=2, col=1)
     fig.update_yaxes(
         title_text="Lap Time",
         tickvals=tick_vals,
@@ -279,5 +359,49 @@ def build_lap_chart(
         margin=dict(l=70, r=20, t=20, b=40),
         legend=dict(bgcolor="#12141f", bordercolor="#1e1e2e", borderwidth=1),
         hovermode="x unified",
+        hoverlabel=dict(
+            bgcolor="#1a1a2e",
+            bordercolor="#3a3a5c",
+            font=dict(color="#ffffff", size=12),
+            align="left",
+        ),
     )
     return fig
+
+
+def compute_stint_stats(
+    laps: pd.DataFrame,
+    show_stints: list | None = None,
+    hide_outliers: bool = True,
+) -> dict:
+    """Return per-driver, per-stint degradation stats for the analysis panel.
+
+    Structure: {driver: {stint_num: {compound, slope, best_sec, avg_sec, laps}}}
+    slope is seconds-per-lap (positive = degrading).
+    """
+    filtered = laps.copy()
+    if hide_outliers:
+        m = filtered.groupby("Driver")["LapTimeSec"].transform("median")
+        filtered = filtered[filtered["LapTimeSec"] <= m * 1.07]
+    if show_stints is not None:
+        filtered = filtered[filtered["Stint"].isin(show_stints)]
+
+    result: dict = {}
+    for driver in filtered["Driver"].unique():
+        result[driver] = {}
+        d_laps = filtered[filtered["Driver"] == driver].sort_values("LapNumber")
+        for stint_num in sorted(d_laps["Stint"].unique()):
+            s = d_laps[d_laps["Stint"] == stint_num]
+            if len(s) < 3:
+                continue
+            x = s["LapNumber"].values.astype(float)
+            y = s["LapTimeSec"].values
+            slope = float(np.polyfit(x, y, 1)[0])
+            result[driver][int(stint_num)] = {
+                "compound": str(s["Compound"].iloc[0]).capitalize(),
+                "slope": slope,
+                "best_sec": float(y.min()),
+                "avg_sec": float(y.mean()),
+                "laps": len(s),
+            }
+    return result

@@ -1,6 +1,6 @@
 import streamlit as st
 
-from data_acquisition.loader import get_ferrari_laps, get_telemetry
+from data_acquisition.loader import get_ferrari_laps, get_telemetry, get_circuit_rotation
 from viz.track_map import build_track_map
 
 
@@ -40,5 +40,6 @@ def show():
         st.warning("Telemetry not available for this lap.")
         return
 
-    fig = build_track_map(tel, color_by=color_by)
+    rotation = get_circuit_rotation(year, gp)
+    fig = build_track_map(tel, color_by=color_by, rotation=rotation)
     st.plotly_chart(fig, use_container_width=True)
