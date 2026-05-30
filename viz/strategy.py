@@ -116,7 +116,7 @@ def build_position_chart(laps: pd.DataFrame, ferrari_drivers: list) -> go.Figure
             name=driver,
             line=dict(color=line_color, width=3),
             marker=dict(size=4, color=line_color),
-            showlegend=True,
+            showlegend=False,
             hovertemplate=f"<b>{driver}</b> · Lap %{{x}}<br>P%{{y:.0f}}<extra></extra>",
         ))
         last_row = driver_laps.iloc[-1]
@@ -262,8 +262,20 @@ def build_gap_chart(
             mode="lines",
             name=driver,
             line=dict(color=line_color, width=2.5),
+            showlegend=False,
             hovertemplate=f"<b>{driver}</b><br>Gap: %{{y:.2f}} s<extra></extra>",
         ))
+        if not merged.empty:
+            last_row = merged.iloc[-1]
+            fig.add_annotation(
+                x=last_row["LapNumber"],
+                y=last_row["gap"],
+                text=f"<b>{driver}</b>",
+                showarrow=False,
+                xanchor="left",
+                xshift=7,
+                font=dict(color=line_color, size=11),
+            )
 
         driver_laps_df = all_laps[all_laps["Driver"] == driver].sort_values("LapNumber")
         ferrari_pit_laps = _pit_laps_for(driver_laps_df)
@@ -283,7 +295,7 @@ def build_gap_chart(
         font=dict(color="#ffffff"),
         height=420,
         margin=dict(l=90, r=80, t=30, b=50),
-        xaxis=dict(title="Lap", gridcolor="#222222", zeroline=False, range=[1, max_lap]),
+        xaxis=dict(title="Lap", gridcolor="#222222", zeroline=False, range=[1, max_lap + 7]),
         yaxis=dict(
             title=f"Gap to {ref_label or ref} (s)  (+ = behind, − = ahead)",
             gridcolor="#222222",

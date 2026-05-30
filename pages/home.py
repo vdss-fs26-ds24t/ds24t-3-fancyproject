@@ -56,7 +56,9 @@ def show():
 
     ferrari_drivers = ferrari_laps["Driver"].unique().tolist()
 
-    st.title(f"{gp} {year}")
+    st.title(f"Ferrari Analysis Dashboard for: {gp} {year}")
+
+    st.subheader("Race Overview in Numbers")
 
     # KPI cards
     cols = st.columns(4)
@@ -96,5 +98,6 @@ def show():
 
     # Strategy thumbnail
     st.subheader("Race Strategy")
+    st.caption("Each bar represents a stint on a specific compound of a driver.")
     fig = build_stint_chart(all_laps, ferrari_drivers)
     st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True})

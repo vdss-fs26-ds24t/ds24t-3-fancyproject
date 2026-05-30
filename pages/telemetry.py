@@ -91,7 +91,7 @@ def show():
     # Automated telemetry analysis
     # ------------------------------------------------------------------
     st.divider()
-    st.markdown("### Telemetry Analysis")
+    st.markdown(f"### Telemetry Analysis — {driver_a} compared to {driver_b}")
 
     stats = compute_telemetry_stats(tel_a, tel_b)
     a_stats = stats["a"]

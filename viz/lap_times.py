@@ -332,7 +332,7 @@ def build_lap_chart(
     fig.update_xaxes(gridcolor="#222222", zeroline=False, showspikes=False, row=1, col=1)
     fig.update_xaxes(title_text="Lap", gridcolor="#222222", zeroline=False, showspikes=False, row=2, col=1)
     fig.update_yaxes(
-        title_text="Lap Time",
+        title_text="Lap Time (min:sec)",
         tickvals=tick_vals,
         ticktext=tick_text,
         gridcolor="#222222",
