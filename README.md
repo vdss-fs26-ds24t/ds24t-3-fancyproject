@@ -93,6 +93,10 @@ Every push to `main` triggers `.github/workflows/publish.yml`, which renders the
 
 Claudio Calamia · Stefan Hohl · Fynn Fischer — ZHAW BSc Data Science, group DS24T-3.
 
+## AI declaration  
+
+Claude Opus 4.7 (Anthropic) was used as a writing aid and for debugging support during the development of this project. All desing decisions, analyses and final content were reviewed and approved by the authors.
+
 ## Licence
 
 See [`LICENSE`](LICENSE).
