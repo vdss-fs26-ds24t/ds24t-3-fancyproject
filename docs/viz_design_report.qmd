@@ -491,7 +491,7 @@ Beide bedienen unterschiedliche Marco-Fragen und sind daher beide implementiert.
 
 ## Offene Punkte und nächste Schritte {#sec-future}
 
-Folgende Designentscheidungen sind aktuell offen oder gezielt als zukünftige Iterationen vorgemerkt. Sie werden in der [Evaluationsphase](evaluation.qmd) bzw. in einer Folgeiteration adressiert.
+Folgende Designentscheidungen sind aktuell offen oder gezielt als zukünftige Iterationen vorgemerkt. Sie werden in der Evaluationsphase bzw. in einer Folgeiteration adressiert.
 
 | # | Topic | Beschreibung |
 |---|---|---|
