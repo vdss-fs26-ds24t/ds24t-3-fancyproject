@@ -9,7 +9,7 @@ language:
   section-title-appendices: "Appendix"
 
 website:
-  title: "Sample Project"
+  title: "Interactive Race Analysis Dashboard"
   search: true
   sidebar:
     style: "floating"
@@ -18,10 +18,9 @@ website:
       - index.qmd
       - project_charta.qmd
       - data_report.qmd
-      - viz_design_report.qmd
-      - evaluation.qmd
-      - deployment.qmd
-      - meeting_notes.qmd
+      - text: "Streamlit App"
+        href: "https://ds24t-3.streamlit.app"
+        target: "_blank"
       - presentation.qmd
 
 format:
