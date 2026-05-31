@@ -208,7 +208,7 @@ Plotly wird als Visualisierungsbibliothek eingesetzt, weil es native Browser-Int
 
 Das Visualization Concept entspricht der Value-Map-Seite des Value Proposition Canvas (vgl. Osterwalder et al., 2014): Es beschreibt, wie das Dashboard die User Tasks der Personas unterstützt, ihre Pains lindert und Gains erzeugt. Die Wertdimensionen der einzelnen Visualisierungen orientieren sich an den Frameworks von Card et al. (Card et al., 1999) (kognitive Verstärkung durch Visualisierung) und van Wijk (van Wijk, 2005) (Kosten-Nutzen-Modell der Visualisierung).
 
-Die hier beschriebenen Elemente sind das **konzeptuelle Set zum Projektstart**. Konkrete Encoding-Entscheidungen, Designiterationen (inkl. der nachträglich verworfenen Sektor-Heatmap) und das vollständige Mapping pro Chart sind im [Visualization Design Report](viz_design_report.qmd) dokumentiert.
+Die hier beschriebenen Elemente sind das **konzeptuelle Set zum Projektstart**. Konkrete Encoding-Entscheidungen, Designiterationen (inkl. der nachträglich verworfenen Sektor-Heatmap) und das vollständige Mapping aller **15 Visualisierungen** über alle 5 Pages sind im [Visualization Design Report](viz_design_report.qmd) dokumentiert.
 
 Das Dashboard ist als interaktives Post-Race-Analyse-Tool konzipiert, das das gewählte Rennen der Ferrari-Fahrer aus verschiedenen Perspektiven beleuchtet. Der Nutzer wählt zunächst Saison und Grand Prix aus; anschliessend kann er frei zwischen den Ansichten navigieren und über Sidebar-Filter (Runde, Stint, Telemetrie-Variable, optionaler Fahrervergleich) die Darstellung steuern.
 
@@ -299,7 +299,7 @@ In allen Visualisierungen (ausser dem Stint Chart, das ohnehin alle Fahrer zeigt
 %%| label: fig-project-plan
 %%| fig-cap: Preliminary project plan.
 gantt
-    title Project Plan
+    title Projektverlauf (abgeschlossen Mai 2026)
     dateFormat YYYY-MM-DD
     axisFormat %d.%m
     tickInterval 3week

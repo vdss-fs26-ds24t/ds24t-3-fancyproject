@@ -1,6 +1,6 @@
 # Data Report
 
-All information on the data used in the project is compiled in the data report in order to ensure the traceability and reproducibility of the results and to enable a systematic expansion of the database.
+This report documents the data sources, processing steps, and exploratory analysis for the Ferrari Race Analysis Dashboard, covering reproducibility and traceability of all data used.
 
 The Ferrari Race Analysis Dashboard relies on Formula 1 race data provided through the FastF1 Python library. The raw data is fetched from the Ergast/OpenF1 APIs via FastF1, then filtered, cleaned, and enriched in the data acquisition layer before being visualised in the Streamlit application. This report documents the raw datasets, the processing pipeline, and the exploratory data analysis of both raw and processed data.
 
@@ -167,11 +167,11 @@ The project uses a single external data source — the **FastF1** Python library
 | 1 | Date | datetime | Timestamps during race | Absolute timestamp of the sample |
 | 2 | SessionTime | timedelta | Positive duration | Time since session start |
 | 3 | Time | timedelta | Positive duration | Time since lap start |
-| 4 | RPM | int | 0–15000 | Engine revolutions per minute |
-| 5 | Speed | int | 0–370 km/h | Car speed |
+| 4 | RPM | float | 0–15000 | Engine revolutions per minute |
+| 5 | Speed | float | 0–370 km/h | Car speed |
 | 6 | nGear | int | 0–8 | Gear number (0 = neutral) |
 | 7 | Throttle | float | 0–100 (%) | Throttle pedal position |
-| 8 | Brake | bool/float | 0 or 1 (binary on/off, sometimes 0–100) | Brake pedal application |
+| 8 | Brake | bool | True / False (binary on/off) | Brake pedal application |
 | 9 | DRS | int | 0–14 (status codes) | Drag reduction system status |
 | 10 | Distance | float | 0–7000+ m (circuit length) | Distance travelled from start/finish line |
 | 11 | X | float | Track coordinates | Car X position on circuit |
@@ -573,7 +573,7 @@ Based on the exploratory analysis, the following implications are identified for
 
 5. **Telemetry data volume**: A single lap produces ~500–1500 telemetry samples at ~240 Hz. Preloading telemetry via a background thread (`preload_telemetry()`) is essential for responsive user experience.
 
-6. **Compound colour encoding**: The distinct tyre compound categories (SOFT, MEDIUM, HARD) with well-established colour associations (red, yellow, white) can be leveraged directly in strategy charts.
+6. **Compound colour encoding**: The distinct tyre compound categories (SOFT, MEDIUM, HARD) with well-established colour associations (red, yellow, white) are used directly in strategy charts without a learned legend.
 
 7. **Data availability**: The data quality is sufficient for the visualisation goals. FastF1 provides reliable timing data for completed races, with `IsAccurate` flags to identify potentially unreliable entries.
 
@@ -600,7 +600,7 @@ The data acquisition layer (`data_acquisition/loader.py`) transforms the raw Fas
 - **Processing steps**:
     1. Load session via `_load_session(year, gp, telemetry=False)`
     2. Filter to Ferrari team: `session.laps.pick_team("Ferrari")`
-    3. Select columns: `Driver`, `LapNumber`, `LapTime`, `Compound`, `Stint`, `TyreLife`
+    3. Select columns: `Driver`, `LapNumber`, `LapTime`, `Compound`, `Stint`, `TyreLife`, `Position`, `PitInTime`, `PitOutTime`
     4. Drop rows with missing `LapTime`
     5. Derive `LapTimeSec` from `LapTime.dt.total_seconds()`
     6. Fill missing `Stint` values with `0`, cast to `int`
@@ -619,7 +619,10 @@ The data acquisition layer (`data_acquisition/loader.py`) transforms the raw Fas
 | 4 | Compound | string | "SOFT", "MEDIUM", "HARD", etc. | Tyre compound |
 | 5 | Stint | int | 0+ (0 = unknown) | Stint number |
 | 6 | TyreLife | int/float | 1–50+ | Laps on current tyre set |
-| 7 | LapTimeSec | float | ~60–180 (derived) | Lap time in seconds |
+| 7 | Position | float | 1–20 or NaN | Race position at end of lap |
+| 8 | PitInTime | timedelta | Positive or NaT | Session time car entered pit lane (in-lap) |
+| 9 | PitOutTime | timedelta | Positive or NaT | Session time car left pit lane (out-lap) |
+| 10 | LapTimeSec | float | ~60–180 (derived) | Lap time in seconds |
 
 
 ### Details All Laps
@@ -627,7 +630,7 @@ The data acquisition layer (`data_acquisition/loader.py`) transforms the raw Fas
 - **Description**: Lap timing, tyre, and position data for all drivers. Used by Strategy, Lap Times, and Telemetry pages.
 - **Processing steps**:
     1. Load session via `_load_session(year, gp, telemetry=False)`
-    2. Select columns: `Driver`, `Team`, `LapNumber`, `LapTime`, `Compound`, `Stint`, `TyreLife`, `Position`
+    2. Select columns: `Driver`, `Team`, `LapNumber`, `LapTime`, `Compound`, `Stint`, `TyreLife`, `Position`, `PitInTime`, `PitOutTime`, `TrackStatus`
     3. Drop rows with missing `LapTime`
     4. Derive `LapTimeSec`
     5. Fill missing `Stint` with `0`, cast to `int`
@@ -647,7 +650,10 @@ The data acquisition layer (`data_acquisition/loader.py`) transforms the raw Fas
 | 6 | Stint | int | 0+ | Stint number |
 | 7 | TyreLife | int/float | 1–50+ | Laps on current tyre set |
 | 8 | Position | float | 1–20 | Race position at end of lap |
-| 9 | LapTimeSec | float | ~60–180 (derived) | Lap time in seconds |
+| 9 | PitInTime | timedelta | Positive or NaT | Session time car entered pit lane (in-lap) |
+| 10 | PitOutTime | timedelta | Positive or NaT | Session time car left pit lane (out-lap) |
+| 11 | TrackStatus | string | "1"–"7" (status codes) | Track condition codes during the lap |
+| 12 | LapTimeSec | float | ~60–180 (derived) | Lap time in seconds |
 
 
 ### Details Processed Results
@@ -691,7 +697,7 @@ The data acquisition layer (`data_acquisition/loader.py`) transforms the raw Fas
 | Column index | Column name | Datatype | Values | Short description |
 |---|---|---|---|---|
 | 1 | Distance | float | 0–7000+ m | Distance from start/finish |
-| 2 | Speed | int | 0–370 km/h | Car speed |
+| 2 | Speed | float | 0–370 km/h | Car speed |
 | 3 | Throttle | float | 0–100% | Throttle position |
 | 4 | Brake | float | 0–1 (cast from bool) | Brake application |
 | 5 | Gear | int | 0–8 | Gear number |

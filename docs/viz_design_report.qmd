@@ -459,7 +459,7 @@ Wir dokumentieren die Iterationen, die sich gegenüber dem Charta-Konzept ergebe
 
 Das Charta-Visualisierungskonzept nennt Matplotlib als Werkzeug. Während der Prototyping-Phase wurde klar, dass das Kern-Persona-Bedürfnis "interaktives Hovern auf Telemetrie-Werten" mit Matplotlib + `st.pyplot()` nur sehr eingeschränkt umsetzbar ist (statische PNGs, kein nativer Hover). Wir sind auf **Plotly** umgestiegen — die VDSS-Lektion zu Interaktivität hat explizit Bokeh/Plotly als geeignete Tools für Web-Interaktivität benannt, was den Wechsel rechtfertigt.
 
-Die Charta-Tabelle nennt weiterhin Matplotlib — dies wird in einer folgenden Iteration aktualisiert (siehe `TODO_REVIEW.md`).
+Die Charta-Tooling-Tabelle wurde entsprechend auf Plotly aktualisiert und reflektiert die endgültige Werkzeugwahl.
 
 ### Iteration 2: Heatmap verworfen
 
@@ -516,4 +516,4 @@ Das Dashboard implementiert 15 Visualisierungen über fünf Pages. Jede Visualis
 - Tuftes Data-Ink-Ratio → minimalistische Achsen, dezente Gridlines, kein Chartjunk
 - Shneidermans Mantra → Overview-Filter-Detail-Page-Struktur
 
-Die wichtigsten offenen Punkte (Track-Map-Animation, Farb-Konsolidierung, Story-Mode) sind in @sec-future und in `TODO_REVIEW.md` dokumentiert und sollen in der Evaluationsphase priorisiert angegangen werden.
+Die wichtigsten offenen Punkte (Track-Map-Animation, Farb-Konsolidierung, Story-Mode) sind in @sec-future dokumentiert und wurden als bewusste Abgrenzung des Projektumfangs zurückgestellt.
