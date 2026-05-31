@@ -1,0 +1,519 @@
+---
+title: "Visualization Design Report"
+subtitle: "Visuelle Kodierung und Designentscheidungen für das Ferrari Race Analysis Dashboard"
+---
+
+## Einleitung
+
+Dieser Report dokumentiert die konkreten Designentscheidungen, mit denen das in der [Projektcharta](project_charta.qmd) skizzierte Visualisierungskonzept in ein interaktives Streamlit-Dashboard überführt wurde. Er liegt zwischen Konzept (Charta) und Implementierung (Code im Repo) und richtet sich an folgende Lesergruppen:
+
+- **Dozierende** (Bewertung der Designentscheidungen)
+- **Zukünftige Projektmitglieder**, die das Dashboard weiterentwickeln
+- **Externe Reviewer**, die nachvollziehen wollen, *warum* eine Visualisierung so aussieht, wie sie aussieht
+
+Im Unterschied zum Data Report (was steckt in den Daten?) und zur Charta (was soll erreicht werden?) beantwortet dieser Report drei Fragen pro Visualisierung:
+
+1. **Was** wird dargestellt — welche Daten auf welche visuellen Variablen abgebildet?
+2. **Warum** dieses Encoding — auf welcher Persona-Aufgabe und welchem Designprinzip beruht die Wahl?
+3. **Was wurde verworfen** und welche Trade-offs bleiben offen?
+
+## Theoretische Grundlagen
+
+Die Designentscheidungen orientieren sich am im VDSS-Modul vermittelten Kanon der Datenvisualisierung. Die folgende Kurzübersicht fixiert die Begriffe, die in den späteren Abschnitten ohne weitere Definition verwendet werden.
+
+### Variablentypen nach Stevens
+
+Die Charta (vgl. Tabelle Merkmale) klassifiziert jede Datenvariable nach @stevens1946 als *nominal*, *ordinal*, *intervall* oder *ratio*. Das Skalenniveau bestimmt unmittelbar, welche visuellen Kanäle effektiv kodieren können — zum Beispiel darf eine *nominale* Variable wie `Compound` nicht durch einen ordinalen Kanal wie Helligkeit dargestellt werden, ohne irreführende Ordnung zu suggerieren.
+
+### Visuelle Variablen nach Bertin
+
+@bertin1967 unterscheidet sieben retinale Variablen: **Position**, **Grösse**, **Form**, **Orientierung**, **Farbton**, **Farbsättigung/-helligkeit** und **Textur**. Die VDSS-Vorlesung übernimmt diese Taxonomie und fügt die Heuristik hinzu, dass kontinuierliche Daten auf Position, Grösse oder Farbhelligkeit, diskrete Daten dagegen auf Form, Textur oder Farbton abgebildet werden sollten. Diese Heuristik ist die Basis für jede Encoding-Entscheidung in @sec-mapping.
+
+### Cleveland & McGill — Wahrnehmungs-Hierarchie
+
+@cleveland1984 zeigen empirisch, dass die menschliche Wahrnehmung quantitative Unterschiede in folgender Reihenfolge zunehmend ungenauer schätzt:
+
+`Position auf gemeinsamer Skala > Position auf nicht-ausgerichteten Skalen > Länge > Winkel/Steigung > Fläche > Volumen > Farbsättigung/-helligkeit`
+
+Konsequenz für das Dashboard: Wo immer **quantitativer Vergleich** das primäre Ziel ist (Rundenzeiten, Gaps, Speed), wird **Position auf gemeinsamer Skala** verwendet. Farbe wird primär zur Kategorisierung (Compound, Fahrer), nicht zur Quantifizierung eingesetzt.
+
+### Data-Ink-Ratio und Chartjunk nach Tufte
+
+@tufte2001 definiert die Data-Ink-Ratio als Verhältnis von daten-tragendem Druck zu Gesamtdruck. Die VDSS-Vorlesung leitet daraus drei konkrete Regeln ab, denen das Dashboard folgt:
+
+- Keine 3D-Effekte, Hintergrundbilder oder dekorative Rahmen ("the duck")
+- Gridlines dezent (`#222222`-Linien auf `#0e1117`-Hintergrund, niedriger Kontrast)
+- Achsen-Spines entfernt, wo redundant; nur die nötigen Ticks angezeigt
+
+### Farbskalen nach Wilke
+
+@wilke2019 unterscheidet drei Farbskala-Typen, die im Dashboard mappingsgenau eingesetzt werden:
+
+| Typ | Wann verwendet | Beispiel im Dashboard |
+|---|---|---|
+| Qualitativ | unsortierte Kategorien | Fahrer-Linien in Position Chart |
+| Sequenziell | sortierte/ordinale Werte | Gear-Encoding (Viridis) |
+| Divergierend | Abweichung um Mittelpunkt | Speed-Delta-Chart (positiv/negativ) |
+
+Akzentfarbe (Ferrari-Rot `#e8002d`) wird gezielt als Hervorhebung über einer neutralen Grundpalette eingesetzt — siehe @sec-color.
+
+### Shneidermans Mantra
+
+@shneiderman1996: *"Overview first, zoom and filter, then details on demand."* Das Mantra prägt die Page-Struktur (Home = Overview, Strategy/Lap Times/Telemetry = Filter/Zoom, Hover = Details on Demand) und wird in @sec-interaction systematisch durchdekliniert.
+
+### Card et al. und van Wijk
+
+Die Charta nennt @card1999 (kognitive Verstärkung durch externalisierte Repräsentation) und @vanwijk2005 (Kosten-Nutzen-Modell) als übergeordnete Frameworks. Wir greifen diese in den Begründungen pro Visualisierung wieder auf, ohne sie hier erneut auszubreiten.
+
+## Data-to-visual mapping {#sec-mapping}
+
+Folgende Tabelle gibt einen Überblick über alle Visualisierungen des Dashboards. Detaillierte Begründungen folgen in @sec-charts.
+
+: Übersicht der Encodings über alle Visualisierungen. {#tbl-encoding-overview}
+
+| # | Page | Visualisierung | Datenvariablen (Skala) | Marks | Visuelle Kanäle | Farbskala |
+|---|------|---------------|------------------------|-------|----------------|-----------|
+| 1 | Home | KPI Cards | Position (ordinal), Δ Grid (ratio), BestLap (ratio), Points (ratio) | Text + Delta-Indikator | Schriftgrösse, Farbton (rot/grün) | Diverging (semantisch) |
+| 2 | Home | Race Narrative | Strategie-String, Position-Übergang | Text | — | — |
+| 3 | Home/Strategy | Stint Chart | Driver (nominal), LapNumber (ratio), Compound (nominal), Stint (ordinal) | Horizontale Balken | Position-Y, Länge-X, Farbton, Border | Qualitativ (F1-Compound) |
+| 4 | Strategy | Position Chart | LapNumber (ratio), Position (ordinal), Driver (nominal) | Linie + Diamond-Marker | Position-X/Y (Y invertiert), Farbton, Strichdicke | Qualitativ + Akzent |
+| 5 | Strategy | Gap Chart | LapNumber (ratio), Gap_to_ref (ratio, divergierend um 0) | Linie + Nulllinie | Position-X/Y, Farbton | Qualitativ |
+| 6 | Strategy | Pit Stop Cards | Lap, Compound-In/Out, Position-Δ, Stop-Time | Metric-Karten | Schriftgrösse, Farbton Delta | Diverging (Delta) |
+| 7 | Lap Times | Lap Time Chart | LapNumber (ratio), LapTime (ratio), Stint (ordinal), Compound (nominal) | Linie + gepunktete Trendlinie + Vertikallinie | Position-X/Y, Farbton, Stil (durchgezogen/gepunktet) | Qualitativ + Akzent |
+| 8 | Lap Times | Compound Strip | LapNumber (ratio), Compound (nominal), Stint (ordinal), Driver (nominal) | Gefüllte Rechtecke | Position-X, Position-Y (Fahrer-Slot), Farbton | Qualitativ (F1-Compound) |
+| 9 | Lap Times | Stint Analysis Metrics | Slope (ratio), BestLap (ratio), AvgLap (ratio) | Metric-Karten + Text | Schriftgrösse | — |
+| 10 | Telemetry | 3-Panel Telemetry | Distance (ratio), Speed/Throttle/Brake (alle ratio) | Linie | Position-X (geteilt), Position-Y (3 Domänen), Farbton, Stil (solid/dashed) | Qualitativ (Driver A/B) |
+| 11 | Telemetry | KPI Row | Top Speed, FT %, Brake Zones, Avg Speed | Metric-Karten | Schriftgrösse, Delta-Farbton | Diverging (Delta) |
+| 12 | Telemetry | Speed Delta Chart | Distance (ratio), Δ Speed (ratio, divergierend um 0) | Linie + gefüllte Bänder | Position, Farbsättigung Fläche | Divergierend |
+| 13 | Telemetry | Corner Table | Corner-Nr (ordinal), Distance (ratio), MinSpeed_A/B (ratio), Δ (ratio) | Tabelle | Position, Zahl-Formatierung | — |
+| 14 | Telemetry | NL Summary | Aggregierte Stats, Corner-Δ | Text-Bullets | — | — |
+| 15 | Track Map | Speed-coloured Track | X, Y (Intervall), Telemetrie-Variable (ratio/ordinal) | Linien-Segmente | Position-X/Y, Farbton (sequenziell/divergierend) | Sequenziell oder Divergierend (var.) |
+
+Insgesamt fünfzehn Visualisierungselemente auf fünf Pages. Die Pages bedienen unterschiedliche Auflösungsebenen — von der Rennübersicht (Home) bis zur Streckenposition auf Meter-Ebene (Track Map) — und implementieren damit Shneidermans Mantra über die gesamte App.
+
+## Begründung pro Visualisierung {#sec-charts}
+
+Pro Visualisierung dokumentieren wir vier Aspekte: (i) das konkrete Encoding, (ii) das visualisierungstheoretische Argument dafür, (iii) die Persona-Aufgabe, die addressiert wird, und (iv) Alternativen, die verworfen wurden.
+
+### Home Page
+
+#### KPI Cards (#1)
+
+**Encoding.** Vier `st.metric`-Karten in einer Reihe: zwei Fahrer-Positionen mit Delta zur Grid-Position, BestLap als formatierter String (`m:ss.SSS`), Punkte als Summe. Delta-Indikator färbt sich automatisch grün (Gewinn) oder rot (Verlust).
+
+**Begründung.** KPIs sind kein analytischer Plot, sondern eine **Übersichts-Schicht** (Shneidermans "Overview first"). Position als Ordinalwert eignet sich nicht für eine Achse mit nur 20 Werten — eine Zahl ist hier effizienter als jede grafische Kodierung. Die Delta-Farbgebung (grün/rot) ist eine **divergierende Akzentfarbe** über einer neutralen Karten-Basis und macht "besser/schlechter" preattentiv lesbar.
+
+**Persona-Bezug.** Persona Marco erwartet beim Öffnen am Montag den schnellen Statusbericht. Persona Giulia bekommt durch die Karten einen "Lead", aus dem sie den Artikel-Einstieg ableiten kann.
+
+**Verworfen.** Bar-Chart mit Positions-Vergleich (verworfen, weil bei zwei Fahrern nicht informativ); Donut für Punkteanteil (verworfen — siehe @sec-no-pies).
+
+#### Race Narrative (#2)
+
+**Encoding.** Ein einzeiliger Markdown-Satz pro Fahrer in der Form `LEC: 2-stop (Soft → Hard → Medium), P3 → P2, gained 1 position`.
+
+**Begründung.** Text ist hier explizit gewählt, weil die Strategie-Sequenz ein **diskreter, geordneter Symbolstrom** ist — kein quantitativer Wert. Die Charta listet "Strategie-Übersicht" als zentrale Persona-Anforderung; eine kompakte Textzeile reduziert kognitive Last vor der detaillierten Stint-Visualisierung weiter unten. Die Wahl folgt der VDSS-Lektion "Text ist eine legitime Visualisierungsform, wenn die Information sequentiell-symbolisch ist".
+
+**Verworfen.** Tabellen-Darstellung mit Spalten "Stint 1 | Stint 2 | Stint 3" — bei wechselnder Stop-Zahl pro Fahrer schwer zu layouten und für Giulia nicht zitatfähig.
+
+#### Stint Chart Thumbnail (#3)
+
+Dieselbe Funktion `build_stint_chart` wie auf der Strategy Page (#3 detailliert), hier aber als statische Vorschau gerendert (`staticPlot: True`). Die Interaktivität entfällt bewusst, um die Home Page als reines Übersichts-Kompendium zu halten.
+
+### Strategy Page
+
+#### Stint Chart — detailliert (#3)
+
+**Encoding.**
+
+- **Mark:** horizontaler Balken pro Stint (also typischerweise 2–4 Balken pro Fahrer)
+- **Y-Achse:** Driver (nominal, sortiert nach Klassifikation)
+- **X-Achse:** LapNumber (ratio, gemeinsame Skala für alle Fahrer)
+- **Farbton:** Compound (nominal: Soft = rot, Medium = gelb, Hard = weiss, Inter = grün, Wet = blau)
+- **Border:** rote Umrandung (#ff4444, 3 px) für Ferrari-Fahrer
+- **Innerer Text:** "L<lap>" am Stint-Start für Stints ≥ 3 Runden
+
+**Begründung — Mark-Wahl.** Horizontale Balken auf gemeinsamer X-Achse ergeben die **höchste Stufe in der Cleveland-McGill-Hierarchie** (Position auf gemeinsamer Skala), wenn der Vergleich "Wann wechseln die Fahrer den Compound?" beantwortet werden soll. Das macht Strategie-Muster (1-Stopper vs. 2-Stopper vs. 3-Stopper) preattentiv erkennbar.
+
+**Begründung — Farbe.** Die F1-Compound-Farben (rot/gelb/weiss) sind in der TV-Übertragung etabliert und benötigen für die Zielgruppe keine erlernte Legende. Dies addressiert Giulias Gain "Einstieg ohne Lernkurve" direkt. Trotzdem zeigen wir eine Legende, weil die Charta dies in der Erfolgskriterien explizit fordert.
+
+**Begründung — Reihenfolge.** Die Y-Achse ist sortiert nach offizieller Endklassifikation (Top 10 default, per Slider 5–20). Dies wendet die in den VDSS-Bar-Plot-Slides betonte Regel "Bar ordering significantly impacts comprehension" an — die alphabetische Sortierung wird als irreführend explizit vermieden.
+
+**Begründung — Ferrari-Border.** Das Branding-Statement aus der Charta wird über eine **Akzentlinie** umgesetzt (Wilke-Konzept "accent over baseline"), nicht über eine Füllfarbe. Eine andere Füllfarbe würde mit dem Compound-Encoding kollidieren.
+
+**Persona-Bezug.** Marco beantwortet die Frage "Welche Strategie hat funktioniert, welche nicht?" durch Vergleich der Balken-Längen im selben Stint. Giulia bekommt einen Screenshot-fähigen "One-Glance"-Plot.
+
+**Trade-off.** Die Ferrari-Rot-Border kann bei einem Ferrari auf SOFT (Compound = rot) optisch mit der Compound-Farbe verschmelzen. Da der Border heller als die Füllung ist (#ff4444 vs. #e8002d) und 3 px dick gerendert wird, bleibt der Effekt subtil — aber es ist eine bewusst akzeptierte Schwäche.
+
+**Verworfen.**
+
+- Gantt-ähnliches Format mit Zeitachse statt Rundenachse: verworfen, weil F1-Strategen denken in *Runden*, nicht in Sessionzeit
+- Stacked-Bar pro Fahrer: verworfen, weil die Stints längs gelesen werden müssen, nicht als Teil-vom-Ganzen
+- Heatmap (Fahrer × Runden, Farbton = Compound): theoretisch möglich, aber bei nur 3–5 Stints pro Fahrer würde eine Heatmap **viele zu kleine Zellen** erzeugen und ein nicht-quantitatives kategorisches Encoding in ein quantitativ-anmutendes Format zwingen (Anti-Pattern aus den Heatmap-Slides)
+
+#### Position Chart (#4)
+
+**Encoding.**
+
+- **Mark:** Linie pro Fahrer (Ferrari mit zusätzlichen Markern + Endlabel + Diamond-Pit-Markern)
+- **X:** LapNumber (ratio)
+- **Y:** Position 1–20 (ordinal, **invertiert** — P1 oben)
+- **Farbton:** Ferrari `#e8002d` / `#ffffff`, alle anderen `#3a3a3a` (dunkles Grau)
+- **Strichdicke:** Ferrari 3 px, sonst 1 px
+- **Marker:** Diamond (◆) auf Pit-Laps für Ferrari
+- **Background-Bänder:** Safety-Car gelb, VSC blau (low opacity)
+
+**Begründung — invertierte Y-Achse.** Die Lektion zu Koordinaten und Achsen warnt vor unintuitiven Achsen — F1-Position 1 ist aber semantisch "oben", weshalb wir die Y-Achse invertieren. Dies ist eine **bewusste Konvention-Anpassung** und kein Verstoss gegen die Lektion: die Achse ist klar mit "P1", "P2", … beschriftet.
+
+**Begründung — Akzent-Farbgebung.** Das Position Chart hat in einem Rennen mit 20 Fahrern **20 Linien**. Würde jeder Fahrer eine eigene Farbe bekommen, wäre der Plot wegen Linien-Überlagerung unleserlich (Wilkes "spaghetti chart"-Anti-Pattern). Wir wählen daher **ein Akzent-Schema**: zwei Fahrer (Ferrari) farbig + dick, alle anderen identisch dunkel-grau + dünn. Das adressiert sowohl die Cleveland-McGill-Hierarchie (Ferrari-Linien hervorgehoben über Strichdicke = Grösse) als auch das Tufte-Prinzip der Daten-Ink-Effizienz.
+
+**Begründung — Diamond-Marker für Pit-Stops.** Form ist nach Bertin eine "nominale" Variable und damit perfekt für die *kategoriale* Information "Pit-Stop". Ein numerisches Encoding (z.B. Position-Verlust durch den Stop) wäre redundant mit dem nachfolgenden Linien-Verlauf.
+
+**Begründung — SC/VSC-Bänder.** Hintergrund-Bänder mit *geringer* Sättigung folgen dem Tufte-Prinzip — sie tragen Kontext, ohne die primären Daten zu erschlagen. Die Datentinte der Linien dominiert weiterhin.
+
+**Persona-Bezug.** Marco erkennt sofort, in welchen Rennphasen Ferrari überholt wurde / überholt hat und kann das mit Pit-Stops korrelieren (preattentive Verarbeitung).
+
+**Verworfen.**
+
+- Bump-Chart mit Rang-Linien pro Lap statt Position pro Lap: verworfen, weil Bump-Charts bei 20 Fahrern unübersichtlich werden und die Pit-Stop-Information verloren ginge
+- Tabelle mit Position pro Runde: verworfen, weil quantitativer Vergleich über Runden hinweg in Tabellen schlecht funktioniert
+
+#### Gap Chart (#5)
+
+**Encoding.**
+
+- **Mark:** Linie pro Ferrari-Fahrer, Nulllinie als Bezug
+- **X:** LapNumber
+- **Y:** kumulierte Zeitdifferenz zum gewählten Bezug (Race Leader oder anderer Fahrer); **divergierend um 0**
+- **Vertikallinien:** Pit-Stops von Ferrari (grau, gepunktet) und vom Rivalen (blau, gepunktet)
+- **Bänder:** SC/VSC wie im Position Chart
+
+**Begründung — divergierende Y-Achse.** Die Y-Variable ist semantisch zentriert: 0 = gleichauf, positiv = hinten, negativ = vorne. Wilke's Klassifikation legt für solche Daten **divergierende Skalen** nahe. Wir implementieren das *implizit* — über die Nulllinien-Annotation und die Y-Tick-Symmetrie — und *nicht* über eine zweifarbige Linie, weil die Linie *eines* Fahrers kontinuierlich ist und nicht ständig die Farbe wechseln soll.
+
+**Begründung — Pit-Stop-Markierungen.** Zwei verschiedene Linienstile (grau für Ferrari, blau für Rival) sind ein Beispiel für **Bertins Variable "Textur/Stil"** als kategoriellen Kanal — der nicht mit den Farben der Hauptlinien kollidiert.
+
+**Persona-Bezug.** Marco kann ablesen, wie sich der Gap durch Pit-Stops verändert hat (z.B. Undercut-Erfolg sichtbar als plötzlicher Sprung der Linie nach unten direkt nach einem Stop des Rivalen).
+
+**Trade-off.** Pit-Markierungen sind sehr informativ, machen den Chart aber visuell dichter. Bei vielen Pit-Stops (Sprint-Rennen, Regen) wird die X-Achse mit Vertikallinien überladen. Eine Option für eine spätere Iteration wäre ein Toggle "Pit-Markierungen ausblenden".
+
+#### Pit Stop Summary Cards (#6)
+
+**Encoding.** Pro Stop vier `st.metric`-Karten (Lap, Compound-Übergang, Position-Übergang, Dauer). Position-Delta nutzt `delta_color="inverse"` (Positionsgewinn = grün, obwohl numerisch eine kleinere Zahl).
+
+**Begründung.** Die Anzahl Stops pro Fahrer ist klein (typischerweise 1–3). Eine Karten-Repräsentation ist semantisch sauber "ein Stop = eine Karte" und führt zu deutlich weniger kognitiver Last als eine kondensierte Tabelle (vgl. VDSS-Lektion zu Tabellen vs. Karten bei wenigen Items).
+
+**Verworfen.** Tabelle (verworfen wegen geringer Items und schlechter Skanbarkeit von kombinierten Übergangs-Werten wie "Soft → Hard").
+
+### Lap Times Page
+
+#### Lap Time Chart mit Trendlinien (#7)
+
+**Encoding.**
+
+- **Mark:** durchgezogene Linie pro Fahrer-Stint + gepunktete lineare Trendlinie pro Stint
+- **X:** LapNumber (ratio, gemeinsame Skala)
+- **Y:** LapTime in Sekunden, gerendert als `m:ss.SSS` über Custom-Tick-Texte
+- **Farbton:** Ferrari `#e8002d`/`#ffffff`, Konkurrenz-Linie `#4fc3f7`
+- **Stil:** durchgezogen für Roh-Werte, gepunktet für Trends
+- **Vertikallinien:** "PIT" an Stint-Übergängen
+- **Y-Achsen-Range:** automatisch beschnitten auf 107 % Median (Outlier ausgeschlossen)
+
+**Begründung — Wahl Linien-Plot.** Die VDSS-Lektion zu Line-Plots betont, dass Linien-Plots dann am stärksten sind, wenn auf der X-Achse eine **geordnete Grösse** steht und auf der Y-Achse eine **kontinuierliche Variable**. Rundennummer × Rundenzeit erfüllt das exakt. Die Linien-Verbindung macht den **Trend** sichtbar — die Kern-Information für Degradationsanalyse.
+
+**Begründung — gepunktete Trendlinien.** Lineare Regression pro Stint extrahiert die *Degradationsrate* (Slope in s/Lap). Diese ist eine **abgeleitete quantitative Variable**, die Marco direkt im Debrief verwendet ("LEC degradierte mit +0.043 s/Lap auf Hard"). Der gepunktete Stil (Bertins Textur) signalisiert, dass es sich nicht um Roh-Daten handelt — eine wichtige Distinktion, die das **Tufte-Prinzip "Daten und Modelle nicht verwechseln"** umsetzt.
+
+**Begründung — Y-Achsen-Formatierung.** Lap-Times werden normalerweise als `1:23.456` notiert, nicht als 83.456 Sekunden. Wir rechnen intern in Sekunden (für Trendlinien-Mathematik) und formatieren erst die Tick-Labels und Hover-Texte zurück. Das folgt der VDSS-Heuristik "Achsen-Labels in der Sprache des Domänen-Experten".
+
+**Begründung — 107 % Outlier-Filter.** Der 107 %-Median-Cutoff ist die F1-Standard-Definition für "Racing Laps" (Safety-Car-Runden, Pit-Laps, Out-Laps liegen darüber). Die Charta listet "Reifenmanagement sichtbar machen" als Ziel — der Filter macht den Y-Range eng genug, dass Degradations-Trends sichtbar werden, statt von Pit-Laps zerschossen zu werden.
+
+**Persona-Bezug.** Marco bekommt sowohl die Roh-Linie als auch die Trend-Quantifizierung. Giulia kann den klar gegliederten Plot (Stints in Strip darunter sichtbar) als Story-Element nutzen ("ab Runde 24 wurde es eng").
+
+**Verworfen.**
+
+- LOESS-Glättung statt linearer Trend: verworfen, weil Marco eine *Zahl* (s/Lap) im Debrief braucht und LOESS keine Zahl liefert
+- Boxplot pro Stint: verworfen, weil der zeitliche Verlauf innerhalb des Stints verloren ginge
+- Logarithmische Y-Achse: für Lap-Times nicht sinnvoll, weil der Wertebereich nicht über mehrere Grössenordnungen geht (vgl. VDSS-Coordinates-Lektion)
+
+#### Compound Strip (#8)
+
+**Encoding.** Direkt unter dem Lap-Time-Chart, mit derselben X-Achse, eine horizontale Fläche pro Fahrer. Jede Fläche ist in Stint-Segmente unterteilt, die nach Compound eingefärbt sind. Inline-Label "Stint N".
+
+**Begründung — Layout-Kopplung.** Die geteilte X-Achse (über Plotly `make_subplots`) ist eine **kompakte Form des "Brushing & Linking"**: der Nutzer kann horizontal zwischen Roh-Linie und Stint-Übersicht "lesen", ohne die Augen neu zu kalibrieren. Diese Technik wird in der VDSS-Lektion zu Interaktiven Visualisierungen explizit als wirkungsvoller Mechanismus diskutiert.
+
+**Begründung — Compound-Encoding.** Identisch zum Stint Chart auf der Strategy Page — wir verwenden bewusst dieselben Farbcodes über die ganze App (Konsistenz-Prinzip).
+
+**Begründung — Filter-Override.** Der Strip wird *immer* auf den Roh-Daten (nicht-gefiltert) gerendert, auch wenn der Nutzer Stints im Multiselect ausblendet oder Outliers versteckt. Das verhindert, dass die Strategie-Übersicht durch UI-Filter "Löcher" bekommt, die irreführend wirken würden.
+
+**Trade-off.** Bei vielen sehr kurzen Stints (z.B. Sprint Race) wird das "Stint N"-Label im Strip unleserlich. Wir blenden den Text aus für Stints unter 3 Runden — eine pragmatische Heuristik, die in der VDSS-Tabellen-Lektion analog (Spalten ausblenden statt überfüllen) vorkommt.
+
+#### Stint Analysis Metrics (#9)
+
+**Encoding.** Pro Stint eine Reihe `st.metric`-Karten: BestLap (als `m:ss.SSS`), Slope (als `+0.034 s/lap`), Compound-Label, Lap-Count. Zusätzlich ein Bullet-Satz "LEC managed tyres better (0.012 s/lap less degradation)" — automatisch generiert.
+
+**Begründung.** Die quantifizierte Degradation aus den Trendlinien wird hier *explizit als Zahl* präsentiert, weil Marco diese Zahl im Post-Race-Debrief vorlesen will. Die natürlichsprachige Zusammenfassung adressiert beide Personas — Marco bekommt die Bestätigung in Worten, Giulia bekommt einen zitatfähigen Satz.
+
+**Trade-off.** Die NL-Sprache ist heuristisch (Schwellwerte 0.005 s/Lap für "managed tyres better"). In Edge-Cases (extrem ähnliche Pace) wird der Text vielleicht trivial. Das ist akzeptiert — der Plot daneben gibt die echte Wahrheit.
+
+### Telemetry Page
+
+#### 3-Panel Telemetry Chart (#10)
+
+**Encoding.**
+
+- **Drei vertikale Panels** mit geteilter X-Achse: Speed oben, Throttle Mitte, Brake unten
+- **Mark:** Linie
+- **X:** Distance in Metern (nicht Zeit!)
+- **Y:** drei separate Y-Domänen (`yaxis`, `yaxis2`, `yaxis3` mit unterschiedlichen `domain`)
+- **Farbton:** Driver A rot, Driver B türkis-blau
+- **Stil:** A durchgezogen, B gestrichelt
+- **Brake-Panel:** zusätzlich Fläche unter der Linie gefüllt (low alpha)
+- **Hover:** unified über alle drei Panels (`hoversubplots="axis"`)
+
+**Begründung — Distance statt Time auf X-Achse.** Das ist die zentrale Entscheidung dieser Visualisierung. Wenn zwei Fahrer dieselbe Runde drehen, sind sie auf derselben *Strecke* — aber an unterschiedlichen *Zeitpunkten*. Auf einer Distanz-Achse liegen die Brems- und Beschleunigungspunkte beider Fahrer **vertikal übereinander**, also visuell vergleichbar. Auf einer Zeitachse würden sich die Kurven gegeneinander verschieben, und der Vergleich "Wer bremst später?" wäre wertlos. Das ist eine domänen-spezifische Anwendung der allgemeinen VDSS-Heuristik "X-Achse so wählen, dass der relevante Vergleich räumlich zur Adjazenz wird".
+
+**Begründung — Drei vertikale Panels statt eines.** Speed (0–360 km/h), Throttle (0–100 %) und Brake (0/1) haben **inkompatible Wertebereiche und Einheiten**. Würde man sie auf einer Achse darstellen, müsste man normalisieren — und Marco verlöre die für ihn lesbare Skala. Drei separate Panels mit eigener Y-Skala lösen das (vgl. VDSS-Lektion zu Subplots).
+
+**Begründung — Geteilte X-Achse.** Die Gestalt-Prinzipien (Common Fate, Continuity) sagen, dass vertikal alignierte Ereignisse als zusammengehörig wahrgenommen werden. Marco kann so kausal lesen: "Hier hebt das Brems-Signal an, hier sinkt die Throttle, hier sinkt der Speed" — alles in einer vertikalen Linie. Das ist ein Hauptgrund, warum dieses Format der **Telemetrie-Standard im Motorsport** ist.
+
+**Begründung — solid/dashed statt rot/blau allein.** Die VDSS-Color-Lektion betont, dass Farbe nicht der einzige Distinktions-Kanal sein sollte. Wir koppeln Farbton (rot/blau) mit Strichart (solid/dashed) und decken so auch Rot-Grün-Schwäche und Schwarz-Weiss-Druck ab.
+
+**Persona-Bezug.** Marco erkennt sofort, ob Driver A später bremst (Brake-Anstieg weiter rechts) und ob A mehr Speed mitnimmt (Speed-Linie höher im Brems-Anker). Giulia ist sekundär hier — die Persona Giulia kann auch in Worten ("LEC bremst 15m später") bedient werden, was die NL-Summary übernimmt.
+
+**Verworfen.**
+
+- Ein einziges Panel mit normalisierten Werten (verworfen — Marco verliert km/h-Lesbarkeit)
+- Speed–Throttle–Brake als Scatter-Triangulation: verworfen, weil die Streckenposition verloren ginge
+
+#### KPI Row (#11)
+
+Vier `st.metric`-Karten: Top Speed, Full Throttle %, Brake Zones, Avg Speed. Jede mit Delta vs. Driver B.
+
+**Begründung.** Quantifizierungen aus den Roh-Daten, die in der Visualisierung selber nicht direkt ablesbar sind. Full-Throttle-% z.B. erfordert Integration über die ganze Runde, was visuell nicht trivial ist. Die Delta-Farbgebung (positiv/negativ) ist erneut **divergierend** mit semantischer Belegung.
+
+#### Speed Delta Chart (#12)
+
+**Encoding.**
+
+- **Mark:** Linie + gefüllte Bänder
+- **X:** Distance
+- **Y:** Δ Speed (Speed_A − Speed_B) — **divergierend um 0**
+- **Fläche oberhalb Null:** rote Füllung (A schneller)
+- **Fläche unterhalb Null:** blaue Füllung (B schneller)
+- **Linie:** weiss (neutral, primär als Detail-Träger)
+
+**Begründung.** Das ist die **paradigmatische divergierende Visualisierung** in Wilkes Klassifikation. Die Frage "Wo verliert/gewinnt A?" hat eine **klare Null-Mitte** und zwei semantische Pole. Die Farbgebung folgt strikt: rot = A (passend zum 3-Panel-Chart oben), blau = B. Es gibt keinen *zweiten* Plot mit derselben Information — die Darstellung ist primär *abgeleitet* aus dem 3-Panel-Plot, aber wesentlich kompakter und für die "Wo?"-Frage präziser.
+
+**Begründung — Interpolation auf einheitliches Distanz-Grid.** Beide Telemetrie-DataFrames haben *nicht* dieselben Sample-Punkte. Wir interpolieren beide auf 500 äquidistante Distanz-Punkte (`np.interp`) — die VDSS-Lektion zu Data-Cleaning warnt davor, ungleiche Stichproben direkt zu subtrahieren.
+
+**Verworfen.** Bar-Chart pro Sektor: verworfen, weil die räumliche Detailauflösung (auf Meter-Ebene) wertvoll ist.
+
+#### Corner Table (#13)
+
+**Encoding.** Tabelle mit den 5 langsamsten Kurven (Corner-Nr, Distanz, MinSpeed A/B, Δ).
+
+**Begründung.** Tabellen sind nach VDSS-Lektion gut für **wenige Items mit gemischten Einheiten**, die man **scannen** und nicht *vergleichen* will. Genau das ist hier der Fall: fünf Kurven, jede mit vier heterogenen Werten.
+
+**Trade-off.** Die automatische Kurven-Erkennung (Peak-Finding auf invertierter Speed-Kurve mit Prominence-Schwellwert) ist heuristisch. Bei eng beieinanderliegenden Kurven (Esse-Sequenzen) werden manchmal die zwei verschmolzen. Dokumentiert in `viz/telemetry_analysis.py`.
+
+#### Natural Language Summary (#14)
+
+Drei bis vier Markdown-Bullets mit den auffälligsten Befunden. Adressiert primär Persona Giulia, deren Pain "fehlende Beschriftungen / Erklärungen" hier direkt addressiert wird.
+
+### Track Map Page
+
+#### Track Map mit Telemetrie-Overlay (#15)
+
+**Encoding.**
+
+- **Mark:** kurze Linien-Segmente (à 15 Telemetrie-Samples, mit Overlap 2 für nahtloses Anschluss)
+- **Position-X/Y:** rotierte GPS-Koordinaten (Streckenrotation aus FastF1 `circuit_info`)
+- **Farbe:** Telemetrie-Variable (Speed, Throttle, Brake oder Gear)
+- **Farbskala:** `RdYlGn` für Speed/Throttle (sequenziell rot→grün), `RdYlGn_r` für Brake (invertiert), `Viridis` für Gear (sequenziell perceptually-uniform)
+- **Colorbar:** rechts, mit Variablen-Einheit
+- **Aspect Ratio:** geometrisch korrekt (`scaleanchor="y", scaleratio=1`)
+
+**Begründung — Mark-Wahl.** Wir zeichnen keine geschlossene Linie und keinen Scatter, sondern **kurze, überlappende Linien-Segmente** mit Segment-Farbe basierend auf dem Mittel der enthaltenen Telemetrie-Samples. Diese Mark-Wahl ist motiviert durch:
+
+- Eine durchgehende Linie kann nur eine Farbe pro Linienzug haben (Plotly-Limitation)
+- Ein Scatter mit `marker.color`-Mapping würde die Strecke als Punktwolke darstellen, nicht als Linie
+- Die Segment-Lösung produziert eine kontinuierlich-wirkende Farbübergangs-Linie, die der Strecke folgt — visuell näher am gewünschten "Strecke leuchtet" als beide Alternativen
+
+**Begründung — Aspect-Ratio-Lock.** Eine Streckenkarte muss **geometrisch korrekt** sein, sonst wird die Strecke visuell verzerrt. Das ist eine direkte Anwendung der VDSS-Coordinates-Lektion "Cartesian coordinate systems are invariant under linear transformations" — wir respektieren die Skala, indem wir gleiche Einheiten auf beiden Achsen erzwingen.
+
+**Begründung — Streckenrotation.** FastF1 liefert für jeden Circuit einen Rotations-Winkel, der die "natürliche" Ansicht aus der TV-Übertragung herstellt. Wir wenden ihn an, damit Marco die Strecke wiedererkennt. Die VDSS-Lektion zur Geo-Map-Design betont "Wiedererkennbarkeit der Karte über kanonische Orientierung".
+
+**Begründung — Farbskala-Wahl.**
+
+- **Speed:** divergierend-anmutendes RdYlGn ist hier eher *sequenziell semantisch* (langsam = rot = schlecht, schnell = grün = gut). Die Farb-Konvention kommt aus dem F1-Broadcast und ist für die Zielgruppe etabliert.
+- **Brake:** RdYlGn invertiert — gebremste Bereiche rot, ungebremste grün. Konsistent mit Speed-Logik ("rot = aktion").
+- **Gear:** Viridis als perceptually-uniforme **sequenzielle** Skala. Gears sind ordinal (1 < 2 < ... < 8), aber kein semantisches "gut/schlecht" — die neutrale Viridis-Skala vermeidet implizite Wertung.
+
+**Trade-off — Rot-Grün-Schwäche.** RdYlGn ist genau die Farbkombination, die für rund 8 % der männlichen Bevölkerung schwer unterscheidbar ist. Wir akzeptieren das aus zwei Gründen: (i) die räumliche Position auf der Strecke trägt zusätzliche redundante Information ("klar — das ist Kurve 3, da bremst er natürlich"), (ii) die Konsistenz mit dem F1-Broadcast überwiegt die Accessibility-Verbesserung. Eine zukünftige Iteration könnte einen alternativen Viridis-Modus als Toggle anbieten — siehe @sec-future.
+
+**Persona-Bezug.** Marcos zentraler Gain ("zeig mir auf der Karte, wo wir Zeit verloren haben") wird hier eingelöst. Giulia kann eine Track Map als hochauflösenden Screenshot in ihren Artikel übernehmen.
+
+**Verworfen.** Animation über alle Runden (siehe @sec-future als geplante Erweiterung).
+
+## Farbsystem {#sec-color}
+
+Die App verwendet ein **integriertes Drei-Schichten-Farbsystem**, das sich aus Wilkes Klassifikation ableitet:
+
+| Schicht | Typ | Zweck | Beispiel |
+|---|---|---|---|
+| **Brand-Akzent** | qualitativ-singulär | Ferrari hervorheben | `#e8002d` (Ferrari-Rot), `#ffffff` (weisser Zweit-Fahrer) |
+| **Compound-Konvention** | qualitativ (5 Werte) | F1-Reifentyp | Soft `#e8002d`, Medium `#ffd600`, Hard `#d9d9d9`, Inter `#43b02a`, Wet `#0067ff` |
+| **Telemetrie-Codierung** | sequenziell / divergierend | quantitative Telemetrie-Werte | RdYlGn (Speed), RdYlGn_r (Brake), Viridis (Gear) |
+
+### Bekannte Farb-Konflikte
+
+Der oben dokumentierten Logik folgt eine bewusste Akzeptanz von zwei Konflikten:
+
+1. **Ferrari-Rot vs. Compound-Soft-Rot.** Beide nutzen `#e8002d`. In Plots, in denen beides koexistiert (Stint Chart auf Strategy Page), unterscheidet sich der Soft-Stint vom Ferrari-Border durch (a) die Border (`#ff4444`, 3 px) als zusätzlichen Akzent und (b) die Tatsache, dass das Soft-Compound *im Stint-Inhalt* erscheint, der Border aussen herum.
+2. **Helligkeits-Inkonsistenz Hard-Compound.** Der Hex-Code für "Hard" war historisch `#d9d9d9` in `viz/lap_times.py` und `#ebebeb` in `viz/strategy.py`. Eine spätere Konsolidierung in eine gemeinsame `viz/colors.py`-Konstante ist geplant.
+
+### Accessibility
+
+- **WCAG-Kontrast.** Die App nutzt durchgängig dunklen Hintergrund (`#0e1117`) mit hellen Text-Farben (`#ffffff` für Inhalt, `#aaaaaa` für sekundären Text). Der Kontrast `#aaaaaa` auf `#0e1117` liegt bei ca. **7:1**, was AA-Standards erfüllt.
+- **Rot-Grün-Schwäche.** Bewusst akzeptiert auf der Track Map (siehe oben), für die Linien-Plots durch zusätzliche Stil-Unterscheidung (solid/dashed) und Strichdicke-Akzentuierung redundant kodiert.
+
+## Layout und Komposition
+
+### Navigation und Page-Struktur
+
+Die fünf Pages sind eine Anwendung von **Shneidermans Information Seeking Mantra**:
+
+| Mantra-Schritt | Page | Granularität |
+|---|---|---|
+| Overview first | Home | gesamtes Rennen, eine Bildschirmhöhe |
+| Zoom & filter | Strategy / Lap Times / Telemetry | gewähltes Subset (Stints, Runden, Fahrer) |
+| Details on demand | Hover-Tooltips, Pit Stop Cards, Corner Table | einzelne Datenpunkte |
+
+Die Sidebar ist **race-global** (Year + GP + Load-Button), alle anderen Filter sind page-lokal. Das war eine Iteration weg vom ursprünglichen Charta-Konzept "globale Filter" (siehe @sec-iterations).
+
+### Cross-Page-State
+
+Streamlits `session_state["race_key"]` hält die geladenen Daten über Page-Wechsel hinweg. Caching erfolgt über `@st.cache_data` (für Roh-Daten) und `@st.cache_resource` (für FastF1-Session-Objekte). Diese Trennung folgt der Streamlit-Empfehlung und stellt sicher, dass der Wechsel zwischen Pages keine Re-Loads auslöst.
+
+### Vertikales Scrollen vs. Reiter-Layout
+
+Jede Page ist als ein einziger vertikaler Stream konzipiert. Reiter innerhalb einer Page wurden verworfen, weil:
+
+- Streamlits Tab-Komponente kein Cross-Tab-Filter-State teilt
+- Die VDSS-Layout-Heuristik empfiehlt "linear narrative" bei thematisch zusammenhängenden Analysen
+
+## Interaktionsdesign {#sec-interaction}
+
+| Technik | Implementierung | Persona-Aufgabe |
+|---|---|---|
+| **Selektion** | Selectbox (Year, GP, Driver A/B, Lap A/B, Color-by) | "Welches Rennen analysiere ich?" |
+| **Filterung** | Multiselect Stints, Checkbox "Hide SC laps", Slider Top-N | "Auf welchen Stint fokussiere ich?" |
+| **Zoom & Pan** | Plotly Toolbar (default) | "Detail eines Sektors" |
+| **Details on Demand** | Hover-Tooltips mit Custom-Templates | "Was war die Lap-Zeit?" |
+| **Brushing-light** | Geteilte X-Achse Lap-Time-Chart ↔ Compound Strip | "Welcher Compound auf welcher Runde?" |
+| **Progressive Loading** | Background-Thread `preload_telemetry` | "App fühlt sich schnell an" |
+
+### Hover-Templates als Detail-on-Demand-Schicht
+
+Jeder Plot definiert `hovertemplate`-Strings, die domänen-spezifische Informationen liefern (z.B. "S2 · Medium · 8 laps · Trend: +0.043 s/lap"). Diese Hover-Texte sind die direkte Implementierung von Shneidermans "details on demand" — sie blenden Kontext **nur dann** ein, wenn der Nutzer ihn anfragt, ohne die Übersichts-Visualisierung zu überfrachten.
+
+### Was bewusst *nicht* implementiert wurde
+
+- **Cross-Filtering zwischen Pages.** Die Charta hatte "Cross-Filtering" als Stretch Goal markiert. Wir haben uns gegen den Aufwand entschieden, weil Streamlit-Session-State-Kopplung über alle Filter komplexitäts-erhöhend wäre — und die Personas sequenziell durch die Pages gehen, nicht parallel.
+- **Brushing & Linking zwischen Charts auf einer Page.** Bis auf das implizite Linking (gemeinsame X-Achse Lap-Times ↔ Strip) bleibt jeder Chart unabhängig. Plotly-eigenes "select event" wäre möglich, würde aber den Streamlit-Reload-Flow stören.
+
+## Visueller Stil und Ästhetik
+
+### Dunkles Theme
+
+Begründung: F1-Broadcast-Ästhetik, Reduktion der Augenermüdung in längeren Debrief-Sessions (Persona Marco). Streamlit-Theme via `.streamlit/config.toml` auf `dark` gepinnt, Plotly-Hintergrund explizit gesetzt (`paper_bgcolor`, `plot_bgcolor` = `#0e1117`).
+
+### Typografie
+
+Streamlit-Default (Sans-Serif-Stack). Hierarchie über Grösse:
+
+- Page-Titel: H1 (Streamlit `st.title`)
+- Section-Header: H2/H3 (`st.subheader`, `st.markdown`)
+- Plot-interner Text: kontextspezifisch (Achsen 11 pt, Tick-Labels 9 pt, Annotationen 9 pt)
+
+Achsen-Beschriftungen folgen der VDSS-Lektion "Klare Achsenbeschriftungen mit Einheiten": "Lap Time (min:sec)", "Distance (m)", "Speed (km/h)".
+
+### Spacing und Margins
+
+Plotly-Margins sind pro Chart fein-getuned (`margin=dict(l=70, r=20, t=20, b=40)`), um die Daten-Tinte gegenüber dem Layout-Raum dominant zu halten — ein direktes Anwendung des Data-Ink-Ratio-Prinzips.
+
+### Branding-Integration
+
+Ferrari-Logo wird **nicht** in der App verwendet (Lizenz-Risiko und Tufte-Chartjunk-Vermeidung). Branding ist ausschliesslich über die **Akzentfarbe** Ferrari-Rot und die fokussierte Datenauswahl (nur Ferrari-Daten) realisiert.
+
+## Prototyp
+
+- **Tech Stack:** Streamlit 1.56+, Plotly 6.x, Pandas 2.3+, FastF1 3.8+
+- **Hosting:** Streamlit Community Cloud — [ds24t-3.streamlit.app](https://ds24t-3.streamlit.app)
+- **Code-Repository:** [github.com/vdss-fs26-ds24t/ds24t-3-fancyproject](https://github.com/vdss-fs26-ds24t/ds24t-3-fancyproject)
+- **Browser-Kompatibilität:** getestet in Chrome, Safari, Firefox (Desktop). Mobile/Tablet nicht primäre Ziel-Umgebung (Persona Marco arbeitet am Desktop, Persona Giulia am Laptop).
+
+## Designiteration {#sec-iterations}
+
+Wir dokumentieren die Iterationen, die sich gegenüber dem Charta-Konzept ergeben haben. Sie sind nicht nachträglich kosmetisch — jede der hier dokumentierten Änderungen kostete Stunden an Diskussion oder Refactoring.
+
+### Iteration 1: Matplotlib → Plotly
+
+Das Charta-Visualisierungskonzept nennt Matplotlib als Werkzeug. Während der Prototyping-Phase wurde klar, dass das Kern-Persona-Bedürfnis "interaktives Hovern auf Telemetrie-Werten" mit Matplotlib + `st.pyplot()` nur sehr eingeschränkt umsetzbar ist (statische PNGs, kein nativer Hover). Wir sind auf **Plotly** umgestiegen — die VDSS-Lektion zu Interaktivität hat explizit Bokeh/Plotly als geeignete Tools für Web-Interaktivität benannt, was den Wechsel rechtfertigt.
+
+Die Charta-Tabelle nennt weiterhin Matplotlib — dies wird in einer folgenden Iteration aktualisiert (siehe `TODO_REVIEW.md`).
+
+### Iteration 2: Heatmap verworfen
+
+Das Charta-Konzept listete eine **Sektor-Reifenabbau-Heatmap** (Visualisierung Nr. 5) als geplante Visualisierung. In der Implementierungsphase haben wir sie verworfen:
+
+- Die VDSS-Heatmap-Lektion betont "Ordering matters" — der zentrale Erkenntnisgewinn einer Heatmap kommt aus der *Reihenfolge* der Zeilen/Spalten. Bei nur 3 Sektoren × 50 Runden bleibt zu wenig sinnvoller Sortier-Raum, um eine Heatmap "lohnenswerter" zu machen als das bereits vorhandene Lap-Time-Chart mit Stint-Trendlinien.
+- Sector-Times sind bereits implizit durch die Lap-Time-Linie aggregiert. Eine Heatmap würde dieselbe Information dimensionsreduziert wiederholen.
+
+Stattdessen wurde die Analyse-Tiefe in den Stint-Analysis-Metric-Panels (auf der Lap-Times-Page) und dem Speed-Delta-Chart (auf der Telemetry-Page) untergebracht.
+
+### Iteration 3: Globale Filter → page-lokale Filter
+
+Die Charta-Erfolgskriterien forderten "mindestens 3 globale Filter (Runde, Stint, Telemetrie-Variable)". In der Implementation hat sich gezeigt:
+
+- "Runde" hat auf der Strategy-Page eine andere Bedeutung (welche Runde wird auf der Position-Linie hervorgehoben?) als auf der Telemetry-Page (welche Lap-Nummer wird geladen?) als auf der Track-Map-Page (welche Lap-Telemetrie wird gefärbt?).
+- "Stint" existiert nur in der Lap-Times-Analyse als Filter.
+- "Telemetrie-Variable" ist nur auf der Track Map relevant.
+
+Die Filter sind daher **page-lokal** implementiert. Die Charta-Erfolgskriterien werden in der nächsten Doku-Iteration entsprechend angepasst.
+
+### Iteration 4: Position Chart eingeführt
+
+Charta nannte ein "Positions- und Gap-Verlauf"-Chart als optional (Visualisierung Nr. 6). Im Verlauf hat sich gezeigt, dass beide Pflicht-Charts sind:
+
+- Position Chart beantwortet "Wer hat überholt?"
+- Gap Chart beantwortet "Wie eng war der Abstand?"
+
+Beide bedienen unterschiedliche Marco-Fragen und sind daher beide implementiert.
+
+## Offene Punkte und nächste Schritte {#sec-future}
+
+Folgende Designentscheidungen sind aktuell offen oder gezielt als zukünftige Iterationen vorgemerkt. Sie werden in der [Evaluationsphase](evaluation.qmd) bzw. in einer Folgeiteration adressiert.
+
+| # | Topic | Beschreibung |
+|---|---|---|
+| 1 | Track Map Animation | Plotly-`frames` über alle Runden eines Fahrers für Auto-Play der Telemetrie-Färbung — Zusatzpunkt im Bewertungsraster, technisch ca. 100 Zeilen Code |
+| 2 | Viridis-Toggle Track Map | Alternativer Modus für die Track-Map-Farbgebung als Accessibility-Verbesserung gegen Rot-Grün-Schwäche |
+| 3 | Konsolidiertes `viz/colors.py` | Hex-Codes für Compound, Ferrari-Akzent und Fahrer-Farben in *einem* Modul, von allen Charts importiert |
+| 4 | "Story-Mode" für Persona Giulia | Eine Home-Sektion mit 2–3 Sätzen narrativer Renn-Story plus Hero-Visualisierung; reduziert kognitive Last für die Journalistin-Persona |
+| 5 | Persistenter Pit-Marker-Toggle | Im Gap Chart bei vielen Pit-Stops überladen — Toggle in der Sidebar wäre eine elegante Lösung |
+| 6 | Expert-/Lite-Mode für Lap-Times | Slope-Werte und Stint-Trendlinien ein/ausblendbar für die zwei Personas |
+
+## Warum kein Pie-Chart? {#sec-no-pies}
+
+Eine kurze Anmerkung, weil das Thema in mehreren Code-Reviews aufkam: Wir haben bewusst **kein einziges Pie- oder Donut-Chart** im Dashboard. Pie-Charts kodieren Werte als Winkel und Fläche — die nach @cleveland1984 zu den **am wenigsten genauen** Kanälen für quantitativen Vergleich gehören. Die VDSS-Lektion behandelt Pie-Charts in einem eigenen Abschnitt und folgt dieser Skepsis. Wo "Anteil"-Information nötig wäre (z.B. Punkte-Anteil eines Fahrers an der Ferrari-Gesamtsumme), nutzen wir stattdessen `st.metric` mit absolutem Wert plus Delta. Anteile sind selten die eigentliche Frage; die Charta-Personas wollen *Vergleich*, nicht *Teil-vom-Ganzen*.
+
+## Fazit
+
+Das Dashboard implementiert 15 Visualisierungen über fünf Pages. Jede Visualisierung lässt sich auf eine konkrete Persona-Aufgabe aus der Projektcharta zurückführen und nutzt die im VDSS-Modul behandelten Designprinzipien systematisch:
+
+- Skalenniveau nach Stevens → richtiger visueller Kanal nach Bertin
+- Quantitativer Vergleich → Position auf gemeinsamer Skala nach Cleveland-McGill
+- Wilkes Farbskalen-Typologie → konsistente Compound/Telemetrie-Farben
+- Tuftes Data-Ink-Ratio → minimalistische Achsen, dezente Gridlines, kein Chartjunk
+- Shneidermans Mantra → Overview-Filter-Detail-Page-Struktur
+
+Die wichtigsten offenen Punkte (Track-Map-Animation, Farb-Konsolidierung, Story-Mode) sind in @sec-future und in `TODO_REVIEW.md` dokumentiert und sollen in der Evaluationsphase priorisiert angegangen werden.

@@ -18,6 +18,7 @@ website:
       - index.qmd
       - project_charta.qmd
       - data_report.qmd
+      - viz_design_report.qmd
       - text: "Streamlit App"
         href: "https://ds24t-3.streamlit.app"
         target: "_blank"

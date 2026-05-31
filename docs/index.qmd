@@ -29,6 +29,7 @@ The race selector in the sidebar drives every page; switching the race reloads t
 
 - **[Project Charter](project_charta.qmd)** — Context, goals, personas (Marco the strategy engineer, Giulia the data journalist), stakeholder analysis, success criteria and the visualisation concept.
 - **[Data Report](data_report.qmd)** — Data sources, processing pipeline and exploratory analysis of FastF1 lap and telemetry data.
+- **[Visualization Design Report](viz_design_report.qmd)** — Per-chart encoding rationale, design principles (Bertin, Cleveland-McGill, Tufte, Wilke) and design iterations.
 - **[Streamlit App](https://ds24t-3.streamlit.app)** — The deployed dashboard.
 - **[Presentation](presentation.qmd)** — Final project presentation slides.
 

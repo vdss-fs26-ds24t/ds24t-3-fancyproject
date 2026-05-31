@@ -1,7 +1,7 @@
 [project]
-name = "sample-project"
+name = "ferrari-race-analysis"
 version = "0.1.0"
-description = "Add your description here"
+description = "Interactive Streamlit dashboard for Formula 1 post-race analysis (strategy, lap-time degradation, telemetry, track map) — VDSS group project, ZHAW BSc Data Science."
 readme = "README.md"
 requires-python = "==3.12.*"
 dependencies = [

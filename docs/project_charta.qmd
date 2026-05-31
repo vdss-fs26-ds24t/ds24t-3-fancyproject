@@ -24,12 +24,12 @@ Das Dashboard wird als Streamlit-App auf Streamlit Community Cloud veröffentlic
 
 | Kriterium | Zielwert |
 |-----------|----------|
-| Anzahl Analysebereiche im Dashboard | Mindestens 4 (Strategie, Degradation, Driver Inputs, Track Map) |
+| Anzahl Analysebereiche im Dashboard | Mindestens 4 Analysebereiche (Strategie, Lap Times/Degradation, Telemetrie, Track Map), ergänzt um eine Home-Übersicht |
 | Rennauswahl | Nutzer kann Saison und Grand Prix frei wählen; Dashboard lädt die entsprechenden Daten |
-| Interaktive Filteroptionen | Mindestens 3 globale Filter (Runde, Stint, Telemetrie-Variable) |
-| Ladezeit der Streamlit-App | Unter 10 Sekunden für initiales Laden |
+| Interaktive Filteroptionen | Race-globale Sidebar-Auswahl (Saison + GP) plus pro Analyse-Page mindestens 2 page-lokale Filter (z.B. Stint, Fahrer, Telemetrie-Variable, Outlier-Toggle, Bezugsfahrer) |
+| Ladezeit der Streamlit-App | Page-Wechsel unter 2 Sekunden nach geladenem Rennen; erstes Telemetrie-Laden bis ~30 s, abgefedert durch Background-Preload beim Rennen-Laden |
 | Reproduzierbarkeit | Vollständig via GitHub-Repo und `uv sync` nachvollziehbar |
-| Dokumentation | Alle 5 Quarto-Dokumente gemäss Repo-Vorlage ausgefüllt |
+| Dokumentation | Vier zentrale Quarto-Dokumente: Projektcharta, Data Report, Visualization Design Report, Präsentation |
 
 ### Nicht im Scope
 
@@ -37,7 +37,6 @@ Das Dashboard wird als Streamlit-App auf Streamlit Community Cloud veröffentlic
 - Analyse anderer Sessions (Qualifying, Practice, Sprint)
 - Machine-Learning-Modelle oder prädiktive Analysen
 - Echtzeit-Datenanbindung
-- Vergleich mit Fahrern anderer Teams
 
 ## Stakeholder-Analyse
 
@@ -151,14 +150,14 @@ quadrantChart
 |------------|------|------------|
 | Datenquelle | FastF1 (Python) | Offizielle F1-Timing-Daten, strukturierte API |
 | Datenverarbeitung | Pandas, NumPy | Standard Data-Science-Stack |
-| Visualisierung | Matplotlib | Volle Kontrolle über Design und Layout |
+| Visualisierung | Plotly | Native Browser-Interaktivität (Hover, Zoom, Pan); in Streamlit integriert |
 | Dashboard | Streamlit | Python-natives Dashboard-Framework, einfaches Deployment |
 | Dokumentation | Quarto | Reproduzierbare Dokumentation |
 | Versionskontrolle | GitHub | Team-Repository |
 | Hosting Dashboard | Streamlit Community Cloud | Kostenlos, öffentlich zugänglich |
 | Hosting Doku | GitHub Pages | Via GitHub Actions Workflow |
 
-Matplotlib wird als Visualisierungsbibliothek eingesetzt, weil es volle Kontrolle über das visuelle Design bietet. Die Interaktivität wird über Streamlit-Widgets (Slider, Selectboxen, Multiselect) gesteuert; bei jeder Filteränderung werden die Matplotlib-Plots über `st.pyplot()` neu gerendert. Dieser Ansatz trennt sauber zwischen Darstellung (Matplotlib) und Steuerung (Streamlit).
+Plotly wird als Visualisierungsbibliothek eingesetzt, weil es native Browser-Interaktivität (Hover-Tooltips, Zoom, Pan, Spike-Lines) bereitstellt — eine zentrale Anforderung von Persona Marco an die Telemetrie-Analyse. Die Interaktivität ist zweistufig realisiert: Streamlit-Widgets (Selectbox, Multiselect, Slider) steuern Datenauswahl und Filterung, Plotly übernimmt die Detail-Exploration innerhalb des gerenderten Charts. Bei jeder Filteränderung werden die Plotly-Charts über `st.plotly_chart()` neu gerendert. Dieser Ansatz trennt sauber zwischen Darstellung (Plotly) und Steuerung (Streamlit). Der Wechsel von der ursprünglich evaluierten Matplotlib-Lösung wird im [Visualization Design Report](viz_design_report.qmd) ausführlich begründet.
 
 ### Einschränkungen und Risiken
 
@@ -209,6 +208,8 @@ Matplotlib wird als Visualisierungsbibliothek eingesetzt, weil es volle Kontroll
 
 Das Visualization Concept entspricht der Value-Map-Seite des Value Proposition Canvas (vgl. Osterwalder et al., 2014): Es beschreibt, wie das Dashboard die User Tasks der Personas unterstützt, ihre Pains lindert und Gains erzeugt. Die Wertdimensionen der einzelnen Visualisierungen orientieren sich an den Frameworks von Card et al. (Card et al., 1999) (kognitive Verstärkung durch Visualisierung) und van Wijk (van Wijk, 2005) (Kosten-Nutzen-Modell der Visualisierung).
 
+Die hier beschriebenen Elemente sind das **konzeptuelle Set zum Projektstart**. Konkrete Encoding-Entscheidungen, Designiterationen (inkl. der nachträglich verworfenen Sektor-Heatmap) und das vollständige Mapping pro Chart sind im [Visualization Design Report](viz_design_report.qmd) dokumentiert.
+
 Das Dashboard ist als interaktives Post-Race-Analyse-Tool konzipiert, das das gewählte Rennen der Ferrari-Fahrer aus verschiedenen Perspektiven beleuchtet. Der Nutzer wählt zunächst Saison und Grand Prix aus; anschliessend kann er frei zwischen den Ansichten navigieren und über Sidebar-Filter (Runde, Stint, Telemetrie-Variable, optionaler Fahrervergleich) die Darstellung steuern.
 
 ### Produktform
@@ -252,36 +253,27 @@ Streckenkarte basierend auf GPS-Koordinaten (X, Y), farbkodiert nach einer wähl
 - *Ästhetischer Wert:* Die Streckenkarte ist das visuelle Herzstück des Dashboards und schafft einen starken Wiedererkennungseffekt zum gewählten Grand-Prix-Kurs.
 - *Adressierte Pains/Gains:* Erzeugt Marcos zentralen Gain "räumliche Darstellung, die sofort zeigt, wo Zeit gewonnen oder verloren wurde". Lindert Giulias Pain "fehlende Beschriftungen" durch Kurvenbezeichnungen und Sektorgrenzen auf der Karte.
 
-**5. Sektor-Analyse und Reifenabbau-Heatmap**
+**5. Positions- und Gap-Verlauf**
 
-Heatmap der Sektorzeiten (Sektor 1, 2, 3) über die Runden, wobei die Farbintensität die Abweichung von der besten Sektorzeit des Ferrari-Fahrers darstellt. Ergänzend Sektorzeiten als Funktion des Reifenalters (TyreLife).
-
-- *Kognitiver Wert:* Isoliert den Degradationsverlauf pro Sektor. Beantwortet die Frage, ob Leclerc in allen Sektoren gleichmässig Zeit verloren hat oder ob bestimmte Abschnitte stärker betroffen waren (van Wijk, 2005).
-- *Kommunikativer Wert:* Die Heatmap-Darstellung verdichtet viele Datenpunkte auf kleinem Raum und macht Trends ohne Detailanalyse erkennbar.
-- *Ästhetischer Wert:* Farbverläufe in der Heatmap sind visuell ansprechend und laden zur Exploration ein.
-- *Adressierte Pains/Gains:* Erzeugt Marcos Gain "integrierte Darstellung von Strategie, Degradation und Telemetrie" auf Sektorebene.
-
-**6. Positions- und Gap-Verlauf (optional)**
-
-Positionsverlauf über die Runden (Bump Chart) und zeitlicher Abstand zum nächsten Fahrer. Ordnet die Performance des Ferrari-Fahrers in den Rennkontext ein.
+Liniendiagramm des Positionsverlaufs aller Fahrer über die Runden (Ferrari als Akzentfarbe hervorgehoben, übrige Fahrer in neutralem Grau) und separates Gap-Chart, das den kumulierten zeitlichen Abstand der Ferrari-Fahrer zu einem wählbaren Bezug (Race Leader oder Rivale) darstellt. Beide Charts blenden Safety-Car-/VSC-Phasen als Hintergrundbänder und Pit-Stops als Marker bzw. Vertikallinien ein.
 
 - *Kognitiver Wert:* Zeigt die Auswirkung der Strategie auf das Rennresultat. Macht sichtbar, wann der Vorsprung am grössten war und wann es eng wurde.
 - *Kommunikativer Wert:* Position und Gap sind für beide Personas die greifbarsten Rennmetriken.
-- *Ästhetischer Wert:* Der Bump Chart erzeugt durch die kreuzenden Linien eine visuelle Dynamik, die den Rennverlauf lebendig wirken lässt.
+- *Ästhetischer Wert:* Die Akzent-Linien gegen den grauen Hintergrund (Wilke "accent over baseline") erzeugen den Eindruck einer fokussierten Rennerzählung.
 - *Adressierte Pains/Gains:* Erzeugt Giulias Gain "Schlüsselmomente des Rennens visuell erfassen". Liefert Marco den Rennkontext für seine Detailanalysen.
 
 ### Interaktivität
 
-Die Interaktivität wird über Streamlit-Widgets realisiert, nicht innerhalb der Matplotlib-Plots:
+Die Interaktivität ist zweistufig realisiert — Datenauswahl und Filterung über Streamlit-Widgets, Detail-Exploration über Plotly-native Mechanismen (Hover, Zoom, Pan):
 
-- **Rennauswahl:** Dropdown für Saison (Jahr) und Grand Prix; beim Wechsel werden alle Daten neu geladen und alle Plots aktualisiert
-- **Fahrer-Auswahl:** Auswahl des primär zu analysierenden Ferrari-Fahrers (relevant wenn Ferrari zwei Fahrer im Rennen hat)
-- **Runden-Auswahl:** Slider oder Dropdown zum Auswählen spezifischer Runden, z.B. für den Vergleich "frühe Runde vs. späte Runde" in der Driver-Inputs-Analyse und der Track Map
-- **Telemetrie-Variable:** Auswahl der dargestellten Variable (Speed, Throttle, Brake, Gear) auf der Track Map
-- **Stint-Filter:** Auswahl des betrachteten Stints
-- **Optionaler Fahrervergleich:** Zweiter Ferrari-Fahrer kann als Overlay zugeschaltet werden
-- **Cross-Filtering:** Filteränderungen in der Sidebar wirken sich auf alle relevanten Plots aus
-- **Dynamisches Re-Rendering:** Matplotlib-Plots werden bei jeder Filteränderung über `st.pyplot()` neu gerendert
+- **Rennauswahl:** Dropdown für Saison (Jahr) und Grand Prix in der race-globalen Sidebar; beim Bestätigen werden alle Daten neu geladen und alle Plots auf den Pages aktualisiert
+- **Fahrer-Auswahl:** Page-lokale Selectboxen für die Telemetrie-Vergleichsfahrer und für den Track-Map-Fahrer
+- **Runden-Auswahl:** Page-lokale Slider/Dropdowns zum Auswählen spezifischer Runden für die Telemetrie-Vergleichsansicht und die Track-Map-Färbung
+- **Telemetrie-Variable:** Radio-Buttons auf der Track Map (Speed, Throttle, Brake, Gear)
+- **Stint-Filter:** Multiselect auf der Lap-Times-Page
+- **Outlier-Toggle:** Checkbox auf der Lap-Times-Page, die Safety-Car- und Pit-Laps (> 107 % Median) ausblendet
+- **Konkurrenz-Overlay:** Auswahl eines Vergleichsfahrers in Lap-Times und Telemetrie sowie eines Bezugsfahrers im Gap-Chart
+- **Dynamisches Re-Rendering:** Plotly-Charts werden bei jeder Filteränderung über `st.plotly_chart()` neu gerendert; innerhalb eines Charts unterstützt Plotly nativ Hover-Details, Zoom und Pan ohne Server-Round-Trip
 
 ### Narration und Annotation
 
@@ -325,7 +317,7 @@ gantt
     section Visual Encoding and Design
         Stint Chart und Lap Time Degradation       :a6, 2026-03-25, 12d
         Driver Inputs und Track Map                :a7, 2026-03-30, 14d
-        Sektor-Heatmap und Gap-Analyse             :a8, 2026-04-07, 14d
+        Position- und Gap-Analyse                  :a8, 2026-04-07, 14d
         Dashboard-Layout und Integration           :a9, 2026-04-14, 7d
         Coaching 2                                 :milestone, m3, 2026-04-21, 0d
         Coaching 3                                 :milestone, m4, 2026-04-28, 0d
@@ -369,4 +361,4 @@ Die Überschriften orientieren sich an der englischsprachigen Projektvorlage, de
 
 - FastF1 Dokumentation: <https://docs.fastf1.dev/>
 - Streamlit Dokumentation: <https://docs.streamlit.io/>
-- Matplotlib: <https://matplotlib.org/>
+- Plotly: <https://plotly.com/python/>
