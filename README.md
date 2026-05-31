@@ -13,8 +13,8 @@
 
 An interactive Streamlit dashboard for post-race analysis of Formula 1 races, with a focus on Scuderia Ferrari. Users pick a season and Grand Prix; the app loads the corresponding data from [FastF1](https://docs.fastf1.dev/) and visualises strategy, lap-time degradation, driver-vs-driver telemetry and the colour-coded circuit map.
 
-> **Live app:** [ds24t-3.streamlit.app](https://ds24t-3.streamlit.app)
-> **Documentation site (Quarto):** built from `docs/`, deployed via GitHub Actions: [Documentation](https://vdss-fs26-ds24t.github.io/ds24t-3-fancyproject/)
+> **Live app:** [ds24t-3.streamlit.app](https://ds24t-3.streamlit.app)  
+> **Documentation site (Quarto):** built from `docs/`, deployed via GitHub Actions: [Documentation](https://vdss-fs26-ds24t.github.io/ds24t-3-fancyproject/)  
 > **Course:** VDSS · ZHAW BSc Data Science · Group DS24T-3
 
 ## At a glance
@@ -39,7 +39,6 @@ docs/                     ← Quarto documentation (deployed to GitHub Pages)
   ├─ data_report.qmd
   ├─ viz_design_report.qmd
   └─ presentation.qmd
-eda/                      ← stand-alone data profiling helper
 ```
 
 The data flow is **FastF1 API → `loader.py` (cached) → `pages/*.py` → `viz/*.py` → Plotly → Streamlit.**
