@@ -1,9 +1,20 @@
 # Ferrari Race Analysis Dashboard
 
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
+![Plotly](https://img.shields.io/badge/Plotly-3F4F75?style=for-the-badge&logo=plotly&logoColor=white)
+![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white)
+![NumPy](https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white)
+![FastF1](https://img.shields.io/badge/FastF1-E8002D?style=for-the-badge&logo=formula1&logoColor=white)
+![uv](https://img.shields.io/badge/uv-DE5FE9?style=for-the-badge&logo=astral&logoColor=white)
+![Quarto](https://img.shields.io/badge/Quarto-39729E?style=for-the-badge&logo=quarto&logoColor=white)
+![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-222222?style=for-the-badge&logo=github&logoColor=white)
+![Streamlit Cloud](https://img.shields.io/badge/Streamlit%20Cloud-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)
+
 An interactive Streamlit dashboard for post-race analysis of Formula 1 races, with a focus on Scuderia Ferrari. Users pick a season and Grand Prix; the app loads the corresponding data from [FastF1](https://docs.fastf1.dev/) and visualises strategy, lap-time degradation, driver-vs-driver telemetry and the colour-coded circuit map.
 
 > **Live app:** [ds24t-3.streamlit.app](https://ds24t-3.streamlit.app)
-> **Documentation site (Quarto):** built from `docs/`, deployed via GitHub Actions
+> **Documentation site (Quarto):** built from `docs/`, deployed via GitHub Actions: [Documentation](https://vdss-fs26-ds24t.github.io/ds24t-3-fancyproject/)
 > **Course:** VDSS · ZHAW BSc Data Science · Group DS24T-3
 
 ## At a glance
